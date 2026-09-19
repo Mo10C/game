@@ -1,0 +1,10 @@
+{
+  "name": "bloom-spire",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bloom Spire — 花灯りの塔 / Static deckbuilding roguelike",
+  "scripts": {
+    "dev": "node server.cjs",
+    "test": "node --test tests/engine.test.cjs"
+  }
+}
