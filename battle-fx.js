@@ -27,7 +27,6 @@
     dispose(){this.skip();cancelAnimationFrame(this.frame);for(const a of this.animations)a.cancel();this.root.remove();this.cutin?.remove();this.skipButton?.remove();window.removeEventListener('resize',this.resize);document.removeEventListener('keydown',this.key,true);if(this.focusBefore?.isConnected)this.focusBefore.focus({preventScroll:true});}
     point(target){const node=document.querySelector(`[data-entity="${target}"] .combat-sprite`);if(node){const r=node.getBoundingClientRect();return {x:r.left+r.width*.52,y:r.top+r.height*.5,node:node.parentElement};}return {x:this.w*(target==='player'?.24:.73),y:this.h*(this.options.preview?.53:.4)};}
     animate(node,frames,duration,easing='ease-out'){if(!node||!this.motion||this.cancelled)return;const a=node.animate(frames,{duration,easing});this.animations.push(a);return a;}
-    camera(power=4){this.animate(document.querySelector('.battle-stage'),[{transform:'translate(0,0)'},{transform:`translate(${-power}px,${power/2}px)`},{transform:`translate(${power}px,${-power/2}px)`},{transform:'translate(0,0)'}],240);}
     sound(name,...args){if(!this.cancelled)this.options.sound?.[name]?.(...args);}
     add(item){if(this.motion&&!this.cancelled)this.particles.push({start:performance.now(),life:500,...item});}
     ring(p,color=this.color[0],radius=95,life=650,delay=0){this.add({kind:'ring',x:p.x,y:p.y,color,radius,life,start:performance.now()+delay});}
@@ -97,7 +96,7 @@
     ultimateImpact(card,targets){
       const fx=card.ultimate.fx,from=this.point('player');const points=targets.length?targets.map(t=>this.point(t)):[from];
       const center=points.reduce((a,p)=>({x:a.x+p.x/points.length,y:a.y+p.y/points.length}),{x:0,y:0});
-      this.camera(7);this.sound('ultimate',card.ultimate.index);
+      this.sound('ultimate',card.ultimate.index);
       for(const p of points){
         switch(fx){
           case 'rose-slash':this.slash(p,-.65,this.color[1],1.8);this.slash(p,-.65,this.color[0],1.5,80);this.burst(p,65,this.color[0],'petal',1.4);break;
@@ -143,7 +142,6 @@
         if(e.type==='damage'||e.type==='poison'){
           if(damageIndex++)await this.wait(card?.ultimate?120:110);
           if(card?.effects.hits>1)this.slash(this.point(e.target),damageIndex%2?.6:-.6,this.color[damageIndex%3],card.ultimate?1.25:.7);
-          this.camera(card?.ultimate?5:2);
         }
         this.pop(e);
         if(e.type==='victory')this.sound('chime');
