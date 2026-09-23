@@ -1,0 +1,996 @@
+{
+  "knight": {
+    "filename": "cards-knight.png",
+    "columns": 4,
+    "rows": 5,
+    "preferred_dimensions": "2048x1280",
+    "direction": "Exactly 20 equal rectangular panels in a strict 4-column x 5-row atlas. Each panel is a complete distinct full-bleed illustration. No text, numbers, letters, card borders, UI, gaps, or gutters. No elements cross panel boundaries. Keep action focal subject centered with all key features inside middle80%. Original premium painterly anime chibi game art, match ORIGINAL character sprites faithfully. Same color palette across one hero, but different composition, silhouettes, effects and props for EVERY move. Art must remain legible at 170x95 pixels. Same card ID variants for strike and guard explicitly show this hero and weapon. Do not draw a generic sword for casters or a generic portrait repeated in every panel.",
+    "cells": [
+      {
+        "index": 0,
+        "row": 1,
+        "column": 1,
+        "id": "strike",
+        "name": "花びらの一閃",
+        "scene": "Lily in side profile making ONE short horizontal sword slash, a small pink trail, close-up sword and little determined face; ordinary simple strike"
+      },
+      {
+        "index": 1,
+        "row": 1,
+        "column": 2,
+        "id": "guard",
+        "name": "おまもり",
+        "scene": "Lily crouching behind her small white-and-gold physical shield, protective pink ribbon around the rim, sturdy defensive silhouette"
+      },
+      {
+        "index": 2,
+        "row": 1,
+        "column": 3,
+        "id": "bloomcut",
+        "name": "つぼみ斬り",
+        "scene": "Tiny closed rosebuds opening along the tip of Lily’s sword as she makes a low upward cut, fresh green stems and pink buds"
+      },
+      {
+        "index": 3,
+        "row": 1,
+        "column": 4,
+        "id": "rose",
+        "name": "ローズエッジ",
+        "scene": "A large single deep red rose blossoms at the tip of a diagonal rapier-like thrust, Lily poised behind it"
+      },
+      {
+        "index": 4,
+        "row": 2,
+        "column": 1,
+        "id": "doublecut",
+        "name": "ふたひら",
+        "scene": "Lily making two opposing curved sword cuts, TWO separated white-pink crescent trails crossing over a dark forest floor"
+      },
+      {
+        "index": 5,
+        "row": 2,
+        "column": 2,
+        "id": "petalguard",
+        "name": "花のかさ",
+        "scene": "Lily sheltered beneath an umbrella-shaped canopy of translucent pink flower petals, looking upward, gentle protection"
+      },
+      {
+        "index": 6,
+        "row": 2,
+        "column": 3,
+        "id": "petaldraw",
+        "name": "春風の便り",
+        "scene": "Lily receiving a folded letter on a swirl of pale spring wind, fluttering white envelope and trailing pink petals"
+      },
+      {
+        "index": 7,
+        "row": 2,
+        "column": 4,
+        "id": "bramble",
+        "name": "いばらの構え",
+        "scene": "Lily planting her sword in the soil inside a ring of dark green thorny vines, bristling defensive pose"
+      },
+      {
+        "index": 8,
+        "row": 3,
+        "column": 1,
+        "id": "flourish",
+        "name": "咲き誇る剣",
+        "scene": "A long radiant sword entirely blooming with white and pink flowers, Lily lifting it diagonally in a sunlit garden"
+      },
+      {
+        "index": 9,
+        "row": 3,
+        "column": 2,
+        "id": "petalstorm",
+        "name": "花吹雪",
+        "scene": "Wide view of Lily spinning in a huge spiral of dense airborne pink petals around several shadow targets, area attack"
+      },
+      {
+        "index": 10,
+        "row": 3,
+        "column": 3,
+        "id": "resolve",
+        "name": "小さな勇気",
+        "scene": "Intimate close-up of Lily holding her hand over her chest with a warm golden heart light, gentle determined smile, no attack"
+      },
+      {
+        "index": 11,
+        "row": 3,
+        "column": 4,
+        "id": "bloomheart",
+        "name": "花守りの心",
+        "scene": "Lily kneeling and nurturing a glowing rose seedling cupped in both hands, soft green and pink aura"
+      },
+      {
+        "index": 12,
+        "row": 4,
+        "column": 1,
+        "id": "riposte",
+        "name": "返り咲き",
+        "scene": "Lily deflecting an incoming blade with her shield while her sword swings back in the opposite direction, visible counterattack"
+      },
+      {
+        "index": 13,
+        "row": 4,
+        "column": 2,
+        "id": "petalwall",
+        "name": "千花の盾",
+        "scene": "A tall broad wall made of overlapping white rose petals and golden veins, Lily small at its base, geometric protective wall"
+      },
+      {
+        "index": 14,
+        "row": 4,
+        "column": 3,
+        "id": "finalbloom",
+        "name": "満開のフィナーレ",
+        "scene": "Ultimate panorama: Lily raising a sword into an enormous fully bloomed pink rose halo, THREE bright slashes fan outward across the battlefield"
+      },
+      {
+        "index": 15,
+        "row": 4,
+        "column": 4,
+        "id": "dew",
+        "name": "朝露の約束",
+        "scene": "Close-up dew drops on a pale pink rose and Lily touching the flower with a fingertip, soothing blue morning light"
+      },
+      {
+        "index": 16,
+        "row": 5,
+        "column": 1,
+        "id": "roseoath",
+        "name": "薔薇の誓い",
+        "scene": "Ultimate powerful diagonal rose-red sword slash from Lily in a dynamic chibi pose, golden oath ribbon curling behind"
+      },
+      {
+        "index": 17,
+        "row": 5,
+        "column": 2,
+        "id": "sanctuary",
+        "name": "花聖のサンクチュアリ",
+        "scene": "Ultimate luminous glasslike dome of layered pink blossoms sheltering Lily in a sacred garden, healing white-gold light"
+      },
+      {
+        "index": 18,
+        "row": 5,
+        "column": 3,
+        "id": null,
+        "scene": "Quiet lantern-lit forest path"
+      },
+      {
+        "index": 19,
+        "row": 5,
+        "column": 4,
+        "id": null,
+        "scene": "Small starry lake with a stepping stone"
+      }
+    ]
+  },
+  "witch": {
+    "filename": "cards-witch.png",
+    "columns": 4,
+    "rows": 5,
+    "preferred_dimensions": "2048x1280",
+    "direction": "Exactly 20 equal rectangular panels in a strict 4-column x 5-row atlas. Each panel is a complete distinct full-bleed illustration. No text, numbers, letters, card borders, UI, gaps, or gutters. No elements cross panel boundaries. Keep action focal subject centered with all key features inside middle80%. Original premium painterly anime chibi game art, match ORIGINAL character sprites faithfully. Same color palette across one hero, but different composition, silhouettes, effects and props for EVERY move. Art must remain legible at 170x95 pixels. Same card ID variants for strike and guard explicitly show this hero and weapon. Do not draw a generic sword for casters or a generic portrait repeated in every panel.",
+    "cells": [
+      {
+        "index": 0,
+        "row": 1,
+        "column": 1,
+        "id": "strike",
+        "name": "花びらの一閃",
+        "scene": "Luna pointing her moon staff and firing ONE small pale-blue star bolt, readable compact ordinary spell, navy hat and silver-teal hair visible"
+      },
+      {
+        "index": 1,
+        "row": 1,
+        "column": 2,
+        "id": "guard",
+        "name": "おまもり",
+        "scene": "Luna holding a small upright circular blue lunar barrier in front of her with one hand, navy-and-silver defense"
+      },
+      {
+        "index": 2,
+        "row": 1,
+        "column": 3,
+        "id": "spark",
+        "name": "月のしずく",
+        "scene": "A teardrop of blue moonlight falling from Luna’s staff tip into a tiny ice ripple, delicate focused spell"
+      },
+      {
+        "index": 3,
+        "row": 1,
+        "column": 4,
+        "id": "moonbolt",
+        "name": "ムーンボルト",
+        "scene": "A distinct large blue crescent missile shooting diagonally out of Luna’s star staff, crescent silhouette dominates"
+      },
+      {
+        "index": 4,
+        "row": 2,
+        "column": 1,
+        "id": "icewall",
+        "name": "氷のカーテン",
+        "scene": "Luna behind a hanging curtain of long pale-blue icicles, crystal translucent vertical streaks, guarding posture"
+      },
+      {
+        "index": 5,
+        "row": 2,
+        "column": 2,
+        "id": "stargaze",
+        "name": "星をよむ",
+        "scene": "Luna reclining on a stone step reading a small constellation chart, floating golden star points over an open book"
+      },
+      {
+        "index": 6,
+        "row": 2,
+        "column": 3,
+        "id": "frostbite",
+        "name": "こごえる息",
+        "scene": "Luna blowing a plume of icy mist into both palms, frosty crystalline breath and distant target silhouette"
+      },
+      {
+        "index": 7,
+        "row": 2,
+        "column": 4,
+        "id": "lightning",
+        "name": "星降る雷",
+        "scene": "THREE forked blue lightning bolts descending from three golden stars above Luna’s raised staff"
+      },
+      {
+        "index": 8,
+        "row": 3,
+        "column": 1,
+        "id": "blizzard",
+        "name": "きらめく吹雪",
+        "scene": "Luna whirling her staff as a broad winter blizzard of snowflakes sweeps horizontally across dark bushes"
+      },
+      {
+        "index": 9,
+        "row": 3,
+        "column": 2,
+        "id": "shatter",
+        "name": "砕ける月影",
+        "scene": "A giant frosted crescent moon cracking into sharp blue shards as Luna snaps her fingers, dramatic shattered silhouette"
+      },
+      {
+        "index": 10,
+        "row": 3,
+        "column": 3,
+        "id": "comet",
+        "name": "流れ星の約束",
+        "scene": "A single long brilliant comet with a white head and sapphire tail crossing from upperleft to lowerright beside Luna"
+      },
+      {
+        "index": 11,
+        "row": 3,
+        "column": 4,
+        "id": "moonaura",
+        "name": "月のヴェール",
+        "scene": "A gauzy translucent veil of moonlight draped protectively around Luna, serene face, silver-blue clothlike arc"
+      },
+      {
+        "index": 12,
+        "row": 4,
+        "column": 1,
+        "id": "astronomy",
+        "name": "星図のひみつ",
+        "scene": "Top-down richly illuminated star map with Luna’s small gloved hand tracing connecting golden constellations, magical astronomy scene"
+      },
+      {
+        "index": 13,
+        "row": 4,
+        "column": 2,
+        "id": "absolute",
+        "name": "真夜中の静寂",
+        "scene": "Ultimate stillness: Luna centered in an enormous cathedral of sharp blue ice crystals under a black moon, frozen battlefield"
+      },
+      {
+        "index": 14,
+        "row": 4,
+        "column": 3,
+        "id": "supernova",
+        "name": "スーパーノヴァ",
+        "scene": "Ultimate huge white-gold star core exploding in concentric blue-violet radiant waves behind Luna’s thrusting staff"
+      },
+      {
+        "index": 15,
+        "row": 4,
+        "column": 4,
+        "id": "moonstep",
+        "name": "月うさぎの足音",
+        "scene": "Luna taking a playful hopping step across small floating crescent stepping stones, rabbitlike motion silhouette and boot trails"
+      },
+      {
+        "index": 16,
+        "row": 5,
+        "column": 1,
+        "id": "eclipse",
+        "name": "月蝕のアリア",
+        "scene": "Ultimate dark disk eclipse surrounded by a luminous silver crescent, Luna sweeping a crescent-shaped magic circle with her staff"
+      },
+      {
+        "index": 17,
+        "row": 5,
+        "column": 2,
+        "id": null,
+        "scene": "Quiet lantern-lit forest path"
+      },
+      {
+        "index": 18,
+        "row": 5,
+        "column": 3,
+        "id": null,
+        "scene": "Small starry lake with a stepping stone"
+      },
+      {
+        "index": 19,
+        "row": 5,
+        "column": 4,
+        "id": null,
+        "scene": "Flowering tree in moonlight"
+      }
+    ]
+  },
+  "alchemist": {
+    "filename": "cards-alchemist.png",
+    "columns": 4,
+    "rows": 5,
+    "preferred_dimensions": "2048x1280",
+    "direction": "Exactly 20 equal rectangular panels in a strict 4-column x 5-row atlas. Each panel is a complete distinct full-bleed illustration. No text, numbers, letters, card borders, UI, gaps, or gutters. No elements cross panel boundaries. Keep action focal subject centered with all key features inside middle80%. Original premium painterly anime chibi game art, match ORIGINAL character sprites faithfully. Same color palette across one hero, but different composition, silhouettes, effects and props for EVERY move. Art must remain legible at 170x95 pixels. Same card ID variants for strike and guard explicitly show this hero and weapon. Do not draw a generic sword for casters or a generic portrait repeated in every panel.",
+    "cells": [
+      {
+        "index": 0,
+        "row": 1,
+        "column": 1,
+        "id": "strike",
+        "name": "花びらの一閃",
+        "scene": "Miel tossing ONE little green glass potion bottle toward a nearby target, visible tumbling flask and a tiny green splash, ordinary attack"
+      },
+      {
+        "index": 1,
+        "row": 1,
+        "column": 2,
+        "id": "guard",
+        "name": "おまもり",
+        "scene": "Miel bracing behind a compact woven shield of medicinal leaves, leaf-green protective circle, gentle defensive face"
+      },
+      {
+        "index": 2,
+        "row": 1,
+        "column": 3,
+        "id": "toxic",
+        "name": "ひみつの調合",
+        "scene": "Miel carefully mixing two colorful drops into one small bubbling green flask at a tiny forest laboratory table"
+      },
+      {
+        "index": 3,
+        "row": 1,
+        "column": 4,
+        "id": "venom",
+        "name": "こもれびの毒",
+        "scene": "A deep emerald venom droplet hanging from a poisonous ivy leaf, Miel cautiously collecting it in a small vial"
+      },
+      {
+        "index": 4,
+        "row": 2,
+        "column": 1,
+        "id": "flask",
+        "name": "ぽいっとフラスコ",
+        "scene": "A corked green flask arcing through the air and breaking into a splash upon contact, Miel’s throwing hand visible"
+      },
+      {
+        "index": 5,
+        "row": 2,
+        "column": 2,
+        "id": "mist",
+        "name": "スモークミスト",
+        "scene": "Miel disappearing behind a billowing pale gray-green smoke cloud from a stoppered bottle, defensive smoke screen"
+      },
+      {
+        "index": 6,
+        "row": 2,
+        "column": 3,
+        "id": "brew",
+        "name": "とっておきのレシピ",
+        "scene": "Miel studying a hand-drawn recipe while stirring a small steaming cauldron, warm orange hearth and green herbs, no readable text"
+      },
+      {
+        "index": 7,
+        "row": 2,
+        "column": 4,
+        "id": "cloud",
+        "name": "みどりの雲",
+        "scene": "A broad luminous green poison cloud rolling low across three little target silhouettes, Miel directing it with a raised vial"
+      },
+      {
+        "index": 8,
+        "row": 3,
+        "column": 1,
+        "id": "catalyst",
+        "name": "魔法の触媒",
+        "scene": "A violet crystal dropped into an emerald flask causing a branching reaction of bright green bubbles, chemistry close-up"
+      },
+      {
+        "index": 9,
+        "row": 3,
+        "column": 2,
+        "id": "blast",
+        "name": "はじける実験",
+        "scene": "An orange and lime-green explosion erupting from a round flask with sparks flying, Miel ducking in delighted surprise"
+      },
+      {
+        "index": 10,
+        "row": 3,
+        "column": 3,
+        "id": "recycle",
+        "name": "リサイクル瓶",
+        "scene": "Miel gathering three empty differently shaped glass bottles into her satchel, clean looping wind ribbon, resourceful pose"
+      },
+      {
+        "index": 11,
+        "row": 3,
+        "column": 4,
+        "id": "toxicology",
+        "name": "森の薬学",
+        "scene": "Miel at a forest desk with a botanical herb book, specimen leaves and three tiny vials, scholarly plant study"
+      },
+      {
+        "index": 12,
+        "row": 4,
+        "column": 1,
+        "id": "medicine",
+        "name": "お手製の薬",
+        "scene": "Miel gently wrapping a leaf bandage around her small hand beside a pink healing ointment jar, soft bedside light"
+      },
+      {
+        "index": 13,
+        "row": 4,
+        "column": 2,
+        "id": "leech",
+        "name": "いばらの口づけ",
+        "scene": "Dark thorny ivy tendrils drawing violet energy from a shadow target into Miel’s green vial, siphon direction clear"
+      },
+      {
+        "index": 14,
+        "row": 4,
+        "column": 3,
+        "id": "philosopher",
+        "name": "賢者のしずく",
+        "scene": "A single golden philosopher’s droplet hovering above Miel’s cupped hands, prismatic glass and warm alchemical aura"
+      },
+      {
+        "index": 15,
+        "row": 4,
+        "column": 4,
+        "id": "pandora",
+        "name": "虹色の大実験",
+        "scene": "Ultimate rainbow chemical detonation with five differently colored arcs from Miel’s raised flasks, joyful chibi pose, vivid prism colors"
+      },
+      {
+        "index": 16,
+        "row": 5,
+        "column": 1,
+        "id": "venomgarden",
+        "name": "禁断のエデン",
+        "scene": "Ultimate lush forbidden garden of enormous violet toxic flowers around Miel as she tips a dark green flask, mystical poison mist"
+      },
+      {
+        "index": 17,
+        "row": 5,
+        "column": 2,
+        "id": "elixir",
+        "name": "黄金のエリクシル",
+        "scene": "Ultimate Miel holding a radiant golden healing flask with both hands, white flowers and ascending gold-green light"
+      },
+      {
+        "index": 18,
+        "row": 5,
+        "column": 3,
+        "id": null,
+        "scene": "Quiet lantern-lit forest path"
+      },
+      {
+        "index": 19,
+        "row": 5,
+        "column": 4,
+        "id": null,
+        "scene": "Small starry lake with a stepping stone"
+      }
+    ]
+  },
+  "dragoon": {
+    "filename": "cards-dragoon.png",
+    "columns": 4,
+    "rows": 5,
+    "preferred_dimensions": "2048x1280",
+    "direction": "Exactly 20 equal rectangular panels in a strict 4-column x 5-row atlas. Each panel is a complete distinct full-bleed illustration. No text, numbers, letters, card borders, UI, gaps, or gutters. No elements cross panel boundaries. Keep action focal subject centered with all key features inside middle80%. Original premium painterly anime chibi game art, match ORIGINAL character sprites faithfully. Same color palette across one hero, but different composition, silhouettes, effects and props for EVERY move. Art must remain legible at 170x95 pixels. Same card ID variants for strike and guard explicitly show this hero and weapon. Do not draw a generic sword for casters or a generic portrait repeated in every panel.",
+    "cells": [
+      {
+        "index": 0,
+        "row": 1,
+        "column": 1,
+        "id": "strike",
+        "name": "花びらの一閃",
+        "scene": "Corrected chibi Flare making ONE simple forward spear jab, short cream-red armored body, compact orange streak, ordinary attack"
+      },
+      {
+        "index": 1,
+        "row": 1,
+        "column": 2,
+        "id": "guard",
+        "name": "おまもり",
+        "scene": "Corrected chibi Flare folding her tiny dragon wing and small golden spear across her body to make a compact red scale barrier"
+      },
+      {
+        "index": 2,
+        "row": 1,
+        "column": 3,
+        "id": "ember",
+        "name": "火花のひと突き",
+        "scene": "Flare poking upward with her small spear and making a tiny shower of orange embers from the tip, joyful close-range strike"
+      },
+      {
+        "index": 3,
+        "row": 1,
+        "column": 4,
+        "id": "kindle",
+        "name": "たき火のおまじない",
+        "scene": "Flare warming her little hands above a miniature campfire, head larger than torso, gentle ember glow"
+      },
+      {
+        "index": 4,
+        "row": 2,
+        "column": 1,
+        "id": "flameguard",
+        "name": "紅蓮のまもり",
+        "scene": "Flare crouching inside a circular low wall of curling orange flames, spear planted defensively beside her"
+      },
+      {
+        "index": 5,
+        "row": 2,
+        "column": 2,
+        "id": "spear",
+        "name": "竜槍の一閃",
+        "scene": "Flare’s golden spear point making a precise clean golden diagonal thrust with a focused determined face, no large fireball"
+      },
+      {
+        "index": 6,
+        "row": 2,
+        "column": 3,
+        "id": "cinders",
+        "name": "火の粉のおどり",
+        "scene": "Flare dancing as many tiny red-orange fire motes scatter in a broad semicircle over dark grass, light area attack"
+      },
+      {
+        "index": 7,
+        "row": 2,
+        "column": 4,
+        "id": "warmth",
+        "name": "ほかほかの息",
+        "scene": "Flare exhaling a small heartlike curl of warm steam into her scarf, soothing golden glow and cozy expression"
+      },
+      {
+        "index": 8,
+        "row": 3,
+        "column": 1,
+        "id": "ignition",
+        "name": "心に火をともして",
+        "scene": "A bright small flame igniting in Flare’s cupped hands at chest height, strong orange heart glow, inner power"
+      },
+      {
+        "index": 9,
+        "row": 3,
+        "column": 2,
+        "id": "dragonfang",
+        "name": "竜牙の二連槍",
+        "scene": "Flare stabbing her spear twice, TWO bold parallel gold-orange thrust trails resembling little dragon fangs"
+      },
+      {
+        "index": 10,
+        "row": 3,
+        "column": 3,
+        "id": "forge",
+        "name": "小さな鍛冶屋",
+        "scene": "Flare with a tiny smithing hammer working at a miniature glowing forge and anvil, cream red armor and warm sparks"
+      },
+      {
+        "index": 11,
+        "row": 3,
+        "column": 4,
+        "id": "firewheel",
+        "name": "紅い輪舞",
+        "scene": "Flare spinning her spear into a broad red circular wheel of flame, circular rather than diagonal composition"
+      },
+      {
+        "index": 12,
+        "row": 4,
+        "column": 1,
+        "id": "dragonheart",
+        "name": "竜のこころ",
+        "scene": "Flare holding a small glowing red dragon-shaped pendant against her heart, translucent protective dragon aura behind, cute not fierce"
+      },
+      {
+        "index": 13,
+        "row": 4,
+        "column": 2,
+        "id": "crimsonlance",
+        "name": "紅蓮・竜槍閃",
+        "scene": "Ultimate Flare’s forward spear thrust extended into one long crimson-gold beam, low camera angle, tiny chibi body and big head"
+      },
+      {
+        "index": 14,
+        "row": 4,
+        "column": 3,
+        "id": "dragonflare",
+        "name": "竜焔のレクイエム",
+        "scene": "Ultimate Flare calling a sweeping fan of golden dragon fire from her open palm and spear, huge flame wave behind a tiny chibi figure"
+      },
+      {
+        "index": 15,
+        "row": 4,
+        "column": 4,
+        "id": "sunfall",
+        "name": "落陽のラグナロク",
+        "scene": "Ultimate Flare lifting her short spear overhead as THREE golden-red meteors plunge downward from a burning sun"
+      },
+      {
+        "index": 16,
+        "row": 5,
+        "column": 1,
+        "id": null,
+        "scene": "Quiet lantern-lit forest path"
+      },
+      {
+        "index": 17,
+        "row": 5,
+        "column": 2,
+        "id": null,
+        "scene": "Small starry lake with a stepping stone"
+      },
+      {
+        "index": 18,
+        "row": 5,
+        "column": 3,
+        "id": null,
+        "scene": "Flowering tree in moonlight"
+      },
+      {
+        "index": 19,
+        "row": 5,
+        "column": 4,
+        "id": null,
+        "scene": "Tiny floating crystal island"
+      }
+    ]
+  },
+  "ranger": {
+    "filename": "cards-ranger.png",
+    "columns": 4,
+    "rows": 5,
+    "preferred_dimensions": "2048x1280",
+    "direction": "Exactly 20 equal rectangular panels in a strict 4-column x 5-row atlas. Each panel is a complete distinct full-bleed illustration. No text, numbers, letters, card borders, UI, gaps, or gutters. No elements cross panel boundaries. Keep action focal subject centered with all key features inside middle80%. Original premium painterly anime chibi game art, match ORIGINAL character sprites faithfully. Same color palette across one hero, but different composition, silhouettes, effects and props for EVERY move. Art must remain legible at 170x95 pixels. Same card ID variants for strike and guard explicitly show this hero and weapon. Do not draw a generic sword for casters or a generic portrait repeated in every panel.",
+    "cells": [
+      {
+        "index": 0,
+        "row": 1,
+        "column": 1,
+        "id": "strike",
+        "name": "花びらの一閃",
+        "scene": "Corrected chibi Noel performing one short crossing dual-dagger cut, compact silver crescent trails, teal scarf and big round head, ordinary attack"
+      },
+      {
+        "index": 1,
+        "row": 1,
+        "column": 2,
+        "id": "guard",
+        "name": "おまもり",
+        "scene": "Corrected chibi Noel crossing both short daggers defensively in front of her face, small violet circular ward and lowered ears"
+      },
+      {
+        "index": 2,
+        "row": 1,
+        "column": 3,
+        "id": "twinfang",
+        "name": "双牙のステップ",
+        "scene": "Noel making TWO quick alternating dagger cuts, twin silver ribbons and a playful determined smile, short rounded limbs"
+      },
+      {
+        "index": 3,
+        "row": 1,
+        "column": 4,
+        "id": "feint",
+        "name": "いたずらフェイント",
+        "scene": "Noel leaning playfully to one side leaving a faint purple afterimage in her previous position, tricky sidestep without attack"
+      },
+      {
+        "index": 4,
+        "row": 2,
+        "column": 1,
+        "id": "swift",
+        "name": "風をすりぬけて",
+        "scene": "Noel slipping through a narrow swirl of teal wind, scarf flowing, tiny boots barely touching the ground"
+      },
+      {
+        "index": 5,
+        "row": 2,
+        "column": 2,
+        "id": "crescent",
+        "name": "三日月ナイフ",
+        "scene": "One bright silver crescent dagger thrown in a broad arc under a small moon, Noel’s flicking hand visible"
+      },
+      {
+        "index": 6,
+        "row": 2,
+        "column": 3,
+        "id": "snowstep",
+        "name": "雪わたり",
+        "scene": "Close-up of Noel’s small boots stepping across soft glowing blue footprints in fresh snow, quiet defensive movement"
+      },
+      {
+        "index": 7,
+        "row": 2,
+        "column": 4,
+        "id": "pounce",
+        "name": "おおかみジャンプ",
+        "scene": "Noel making a small forward wolf-like pounce, big head and short tucked legs, daggers close to body, playful dynamic leap"
+      },
+      {
+        "index": 8,
+        "row": 3,
+        "column": 1,
+        "id": "moonfang",
+        "name": "銀狼の牙",
+        "scene": "Noel thrusting one dagger as a sharp white wolf-fang shape of moonlight extends from its tip, focused side profile"
+      },
+      {
+        "index": 9,
+        "row": 3,
+        "column": 2,
+        "id": "tailwind",
+        "name": "追い風のリズム",
+        "scene": "Noel’s teal scarf unfurling in two graceful trailing wind ribbons while she accelerates, movement and rhythm emphasis"
+      },
+      {
+        "index": 10,
+        "row": 3,
+        "column": 3,
+        "id": "shadowdance",
+        "name": "影のおどり子",
+        "scene": "Noel dancing between THREE soft violet shadow silhouettes, compact chibi proportions, lightly raised dagger and moonlit floor"
+      },
+      {
+        "index": 11,
+        "row": 3,
+        "column": 4,
+        "id": "snowfall",
+        "name": "白銀の雨",
+        "scene": "A broad silver-blue rain of tiny icy daggers descending over dark target silhouettes, Noel directing the storm"
+      },
+      {
+        "index": 12,
+        "row": 4,
+        "column": 1,
+        "id": "wolfheart",
+        "name": "月に誓った約束",
+        "scene": "Noel pressing a glowing crescent amulet to her chest beneath a full moon, serene protective spirit-wolf silhouette in sky"
+      },
+      {
+        "index": 13,
+        "row": 4,
+        "column": 2,
+        "id": "crossmoon",
+        "name": "双月・クロスファング",
+        "scene": "Ultimate Noel with crossed short daggers sending a huge clear X of silver-violet light across a moonlit field"
+      },
+      {
+        "index": 14,
+        "row": 4,
+        "column": 3,
+        "id": "nightdance",
+        "name": "零夜の居合",
+        "scene": "Ultimate Noel drawing both blades low along ONE razor-thin horizontal violet line in near-black moonlight, dramatic stillness"
+      },
+      {
+        "index": 15,
+        "row": 4,
+        "column": 4,
+        "id": "silverwaltz",
+        "name": "銀狼のワルツ",
+        "scene": "Ultimate Noel spinning in a spiral of FOUR icy violet blade crescents, big cute head and short legs, silver crystal storm"
+      },
+      {
+        "index": 16,
+        "row": 5,
+        "column": 1,
+        "id": null,
+        "scene": "Quiet lantern-lit forest path"
+      },
+      {
+        "index": 17,
+        "row": 5,
+        "column": 2,
+        "id": null,
+        "scene": "Small starry lake with a stepping stone"
+      },
+      {
+        "index": 18,
+        "row": 5,
+        "column": 3,
+        "id": null,
+        "scene": "Flowering tree in moonlight"
+      },
+      {
+        "index": 19,
+        "row": 5,
+        "column": 4,
+        "id": null,
+        "scene": "Tiny floating crystal island"
+      }
+    ]
+  },
+  "neutral": {
+    "filename": "cards-neutral.png",
+    "columns": 4,
+    "rows": 5,
+    "preferred_dimensions": "2048x1280",
+    "direction": "Exactly 20 equal rectangular panels in a strict 4-column x 5-row atlas. Each panel is a complete distinct full-bleed illustration. No text, numbers, letters, card borders, UI, gaps, or gutters. No elements cross panel boundaries. Keep action focal subject centered with all key features inside middle80%. Original premium painterly anime chibi game art, match ORIGINAL character sprites faithfully. Same color palette across one hero, but different composition, silhouettes, effects and props for EVERY move. Art must remain legible at 170x95 pixels. Same card ID variants for strike and guard explicitly show this hero and weapon. Do not draw a generic sword for casters or a generic portrait repeated in every panel.",
+    "cells": [
+      {
+        "index": 0,
+        "row": 1,
+        "column": 1,
+        "id": "quick",
+        "name": "クイックステップ",
+        "scene": "A pair of light winged leather boots skipping between two stepping stones, bright quick turquoise motion trails, no character"
+      },
+      {
+        "index": 1,
+        "row": 1,
+        "column": 2,
+        "id": "focus",
+        "name": "深呼吸",
+        "scene": "A quiet white feather floating above concentric still-water ripples, soft blue breathing-like rings, tranquil scene"
+      },
+      {
+        "index": 2,
+        "row": 1,
+        "column": 3,
+        "id": "bash",
+        "name": "スターインパクト",
+        "scene": "A golden five-point star striking a cracked dark stone shield, dramatic solid impact and gold sparks, no sword"
+      },
+      {
+        "index": 3,
+        "row": 1,
+        "column": 4,
+        "id": "cleave",
+        "name": "ぐるりん斬り",
+        "scene": "A broad silver crescent blade sweeping horizontally through several hanging vines, clear wide arc area slash"
+      },
+      {
+        "index": 4,
+        "row": 2,
+        "column": 1,
+        "id": "fortress",
+        "name": "星くずの砦",
+        "scene": "A miniature luminous crystalline fortress built of stardust on a floating rock, strong blue geometric walls"
+      },
+      {
+        "index": 5,
+        "row": 2,
+        "column": 2,
+        "id": "agile",
+        "name": "ふわりと身かわし",
+        "scene": "A light white feather slipping between falling arrows, graceful curving silver wind trail, nimble dodge"
+      },
+      {
+        "index": 6,
+        "row": 2,
+        "column": 3,
+        "id": "wisdom",
+        "name": "古い魔導書",
+        "scene": "An ancient open blue leather grimoire with luminous golden runes as abstract marks and a warm burst of energy, no readable letters"
+      },
+      {
+        "index": 7,
+        "row": 2,
+        "column": 4,
+        "id": "precision",
+        "name": "星へのねがい",
+        "scene": "Two hands making a wish beneath one precise golden guiding star, concentrated white-gold ray, starry twilight"
+      },
+      {
+        "index": 8,
+        "row": 3,
+        "column": 1,
+        "id": "needle",
+        "name": "流星の針",
+        "scene": "One slender brilliant silver needle streaking diagonally with a small comet tail through deep indigo sky"
+      },
+      {
+        "index": 9,
+        "row": 3,
+        "column": 2,
+        "id": "healing",
+        "name": "ひだまりのお茶",
+        "scene": "A warm ceramic cup of herbal tea with soft heart-shaped steam and yellow sunlight on a wooden table, pink flower beside it"
+      },
+      {
+        "index": 10,
+        "row": 3,
+        "column": 3,
+        "id": "meteor",
+        "name": "夜明けのきらめき",
+        "scene": "A breathtaking golden meteor at dawn bursting into a radiant white-gold spray over a distant landscape, no character"
+      },
+      {
+        "index": 11,
+        "row": 3,
+        "column": 4,
+        "id": "evergreen",
+        "name": "とこしえの庭",
+        "scene": "A sheltered evergreen garden inside a clear glass dome with protective ancient roots, rich green serene lasting defense"
+      },
+      {
+        "index": 12,
+        "row": 4,
+        "column": 1,
+        "id": "lucky",
+        "name": "ラッキークローバー",
+        "scene": "One emerald four-leaf clover among three-leaf clovers with one golden dew drop, close-up good fortune"
+      },
+      {
+        "index": 13,
+        "row": 4,
+        "column": 2,
+        "id": "curse",
+        "name": "迷いの霧",
+        "scene": "A tangled dim purple mist around a broken lantern in a dark forest, restrained ominous fog, no horror"
+      },
+      {
+        "index": 14,
+        "row": 4,
+        "column": 3,
+        "id": "dazed",
+        "name": "まどろみ",
+        "scene": "A sleepy pale-blue crescent floating among soft lavender clouds and drifting pillows, gentle dreamy confusion"
+      },
+      {
+        "index": 15,
+        "row": 4,
+        "column": 4,
+        "id": null,
+        "scene": "Quiet lantern-lit forest path"
+      },
+      {
+        "index": 16,
+        "row": 5,
+        "column": 1,
+        "id": null,
+        "scene": "Small starry lake with a stepping stone"
+      },
+      {
+        "index": 17,
+        "row": 5,
+        "column": 2,
+        "id": null,
+        "scene": "Flowering tree in moonlight"
+      },
+      {
+        "index": 18,
+        "row": 5,
+        "column": 3,
+        "id": null,
+        "scene": "Tiny floating crystal island"
+      },
+      {
+        "index": 19,
+        "row": 5,
+        "column": 4,
+        "id": null,
+        "scene": "A softly lit woodland treasure chest"
+      }
+    ]
+  }
+}

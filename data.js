@@ -64,12 +64,59 @@
   card('curse', '迷いの霧', 'all', 'curse', -1, 7, 'curse', {}, {}, 'プレイできない。手札にあるままターンを終えると2ダメージ。');
   card('dazed', 'まどろみ', 'all', 'status', -1, 3, 'status', {ethereal:true}, {}, 'プレイできない。ターン終了時に廃棄。');
 
+  // Each ultimate is a real collectible card, with its own cut-in and effect profile.
+  card('roseoath','薔薇の誓い','knight','attack',2,2,'rare',{damage:17,bloom:3,exhaust:true},{damage:24,bloom:4});
+  card('sanctuary','花聖のサンクチュアリ','knight','skill',2,9,'rare',{block:22,bloom:3,regen:3,exhaust:true},{block:30,regen:5});
+  card('eclipse','月蝕のアリア','witch','attack',2,3,'rare',{damage:16,frost:5,exhaust:true},{damage:23,frost:7});
+  card('venomgarden','禁断のエデン','alchemist','skill',2,7,'rare',{poison:8,poisonMultiply:2,exhaust:true},{poison:12});
+  card('elixir','黄金のエリクシル','alchemist','skill',2,9,'rare',{heal:12,block:18,exhaust:true},{heal:16,block:24});
+  card('ember','火花のひと突き','dragoon','attack',1,8,'basic',{damage:6,heat:2},{damage:9,heat:3});
+  card('kindle','たき火のおまじない','dragoon','skill',0,8,'common',{heat:3},{heat:5});
+  card('flameguard','紅蓮のまもり','dragoon','skill',1,1,'common',{block:7,heat:2},{block:10,heat:3});
+  card('spear','竜槍の一閃','dragoon','attack',1,0,'common',{damage:9},{damage:13});
+  card('cinders','火の粉のおどり','dragoon','attack',1,8,'common',{damage:4,aoe:true,heat:1},{damage:7,heat:2});
+  card('warmth','ほかほかの息','dragoon','skill',1,9,'common',{block:5,draw:2},{block:8});
+  card('ignition','心に火をともして','dragoon','power',1,8,'uncommon',{heatTurn:2},{heatTurn:3});
+  card('dragonfang','竜牙の二連槍','dragoon','attack',2,0,'uncommon',{damage:7,hits:2},{damage:10});
+  card('forge','小さな鍛冶屋','dragoon','skill',1,1,'uncommon',{block:10,heat:4},{block:14,heat:5});
+  card('firewheel','紅い輪舞','dragoon','attack',2,8,'uncommon',{damage:12,aoe:true,weak:1},{damage:17,weak:2});
+  card('dragonheart','竜のこころ','dragoon','power',2,11,'rare',{strength:3,heatTurn:2},{strength:4,heatTurn:3});
+  card('crimsonlance','紅蓮・竜槍閃','dragoon','attack',2,0,'rare',{damage:18,heatScale:2,exhaust:true},{damage:25});
+  card('dragonflare','竜焔のレクイエム','dragoon','attack',3,8,'rare',{damage:22,aoe:true,heat:5,exhaust:true},{damage:30,heat:7});
+  card('sunfall','落陽のラグナロク','dragoon','attack',3,11,'rare',{damage:10,hits:3,exhaust:true},{damage:14});
+  card('twinfang','双牙のステップ','ranger','attack',1,0,'basic',{damage:3,hits:2,comboScale:1},{damage:5});
+  card('feint','いたずらフェイント','ranger','skill',0,10,'common',{block:3},{block:5});
+  card('swift','風をすりぬけて','ranger','skill',1,10,'common',{block:6,draw:1},{block:9,draw:2});
+  card('crescent','三日月ナイフ','ranger','attack',1,3,'common',{damage:7,comboScale:2},{damage:10});
+  card('snowstep','雪わたり','ranger','skill',1,4,'common',{block:5,comboBlock:3},{block:8});
+  card('pounce','おおかみジャンプ','ranger','attack',0,0,'common',{damage:3},{damage:5});
+  card('moonfang','銀狼の牙','ranger','attack',1,3,'uncommon',{damage:8,comboScale:3},{damage:12});
+  card('tailwind','追い風のリズム','ranger','skill',0,10,'uncommon',{draw:2,exhaust:true},{draw:3});
+  card('shadowdance','影のおどり子','ranger','power',1,10,'uncommon',{dexterity:2},{dexterity:3});
+  card('snowfall','白銀の雨','ranger','attack',2,4,'uncommon',{damage:7,aoe:true,frost:2,comboScale:2},{damage:10,frost:3});
+  card('wolfheart','月に誓った約束','ranger','power',2,11,'rare',{drawTurn:1,blockTurn:3},{blockTurn:5});
+  card('crossmoon','双月・クロスファング','ranger','attack',2,0,'rare',{damage:8,hits:2,comboScale:2,exhaust:true},{damage:11});
+  card('nightdance','零夜の居合','ranger','attack',2,3,'rare',{damage:17,comboScale:5,exhaust:true},{damage:24});
+  card('silverwaltz','銀狼のワルツ','ranger','attack',3,4,'rare',{damage:5,hits:4,aoe:true,exhaust:true},{damage:7});
+  const ultimateGroups = {
+    knight:[['roseoath','ROSE OATH','rose-slash'],['sanctuary','SACRED GARDEN','petal-sanctuary'],['finalbloom','BLOSSOM FINALE','bloom-finale']],
+    witch:[['eclipse','LUNAR ECLIPSE','lunar-eclipse'],['absolute','ABSOLUTE ZERO','absolute-zero'],['supernova','SUPERNOVA','supernova']],
+    alchemist:[['venomgarden','FORBIDDEN EDEN','venom-eden'],['elixir','GOLDEN ELIXIR','golden-elixir'],['pandora','PRISMATIC WONDER','prism-burst']],
+    dragoon:[['crimsonlance','CRIMSON LANCE','crimson-lance'],['dragonflare','DRAGON REQUIEM','dragon-flare'],['sunfall','RAGNAROK','sun-fall']],
+    ranger:[['crossmoon','CROSS FANG','cross-fang'],['nightdance','MIDNIGHT DRAW','midnight-draw'],['silverwaltz','SILVER WALTZ','silver-waltz']]
+  };
+  for(const [hero,list] of Object.entries(ultimateGroups))list.forEach(([id,en,fx],index)=>{cards[id].ultimate={hero,index,en,fx};});
   const heroes = {
     knight:{id:'knight',name:'リリィ',role:'花守りの剣士',en:'THE BLOSSOM KNIGHT',sprite:0,color:'#ef91a8',hp:78,starter:'bloomcut',relic:'ribbon',quote:'一緒なら、きっと花は咲くよ。',mechanic:'開花',description:'「開花」を重ねて剣を強く。攻撃と防御のバランスに優れた、はじめての旅におすすめの剣士。'},
     witch:{id:'witch',name:'ルーナ',role:'星よみの魔女',en:'THE MOONLIT WITCH',sprite:1,color:'#9abbe9',hp:66,starter:'spark',relic:'moonstone',quote:'星は、きみの味方だよ。',mechanic:'氷結',description:'「氷結」で敵の攻撃を弱め、魔法をつないで一気に攻める。手札を巡らせるテクニカルな魔女。'},
-    alchemist:{id:'alchemist',name:'ミエル',role:'森の錬金術師',en:'THE FOREST ALCHEMIST',sprite:2,color:'#a9d7a1',hp:70,starter:'toxic',relic:'vial',quote:'とびきりのレシピ、見せてあげる！',mechanic:'毒',description:'「毒」はブロックを無視してじわじわ効く。調合と回復で粘り、強敵を倒す小さな研究家。'}
+    alchemist:{id:'alchemist',name:'ミエル',role:'森の錬金術師',en:'THE FOREST ALCHEMIST',sprite:2,color:'#a9d7a1',hp:70,starter:'toxic',relic:'vial',quote:'とびきりのレシピ、見せてあげる！',mechanic:'毒',description:'「毒」はブロックを無視してじわじわ効く。調合と回復で粘り、強敵を倒す小さな研究家。'},
+    dragoon:{id:'dragoon',name:'フレア',role:'陽だまりの竜騎士',en:'THE SUNLIT DRAGOON',sprite:12,color:'#ffad6b',hp:76,starter:'ember',relic:'dragonscale',quote:'この炎で、明日を照らすよ！',mechanic:'灼熱',description:'「灼熱」をため、炎の槍で一気に攻める。熱は攻撃するたび1減るので、連続攻撃に合わせて解き放とう。'},
+    ranger:{id:'ranger',name:'ノエル',role:'銀月の双剣士',en:'THE SILVERMOON RANGER',sprite:13,color:'#bfa7fa',hp:68,starter:'twinfang',relic:'wolfcharm',quote:'ついてきて。月より速く！',mechanic:'連携',description:'軽いカードをつなぐほど、双剣が鋭くなる。同じターンに使ったカードの枚数で「連携」技を強化する双剣士。'}
   };
+  for(const h of Object.values(heroes))h.ultimates=ultimateGroups[h.id].map(x=>x[0]);
   const relics = {
+    dragonscale:{name:'陽だまりの竜鱗',icon:'flame',desc:'戦闘開始時に灼熱3。毎ターン、灼熱を1得る。',starter:true},
+    wolfcharm:{name:'銀狼のお守り',icon:'moon',desc:'毎ターン、最初のアタック使用時に3ブロックを得る。',starter:true},
     ribbon:{name:'花結びのリボン',icon:'flower',desc:'戦闘開始時、開花を1得る。戦闘勝利後、HPを4回復。',starter:true},
     moonstone:{name:'月のペンダント',icon:'moon',desc:'戦闘開始時、すべての敵に氷結2。最初のターンに1枚追加で引く。',starter:true},
     vial:{name:'こもれびの小瓶',icon:'potion',desc:'戦闘開始時、すべての敵に毒2。ポーションの回復量が8増える。',starter:true},
@@ -139,12 +186,25 @@
     {id:'bell',title:'約束の鐘',icon:'bell',text:'苔むした鐘が、遠い昔の歌を覚えている。小さな勇気を込めて、鳴らしてみようか。',options:[{label:'鐘を鳴らす',detail:'HPを12失い、レリックを1個得る',effect:'sacrifice',value:12},{label:'花を供える',detail:'25ゴールドを得る',effect:'gold',value:25}]}
   ];
   const statusLabels={bloom:['開花','攻撃ダメージが数値分増える。'],strength:['筋力','攻撃ダメージが数値分増える。'],dexterity:['敏捷性','カードのブロックが数値分増える。'],poison:['毒','行動前にブロックを無視してダメージ。その後1減る。'],frost:['氷結','各攻撃のダメージが数値分減る。行動後1減る。'],weak:['脱力','攻撃ダメージが25%減る。ターン経過で1減る。'],vulnerable:['無防備','攻撃で受けるダメージが50%増える。ターン経過で1減る。'],thorns:['トゲ','攻撃してきた敵に、数値分のダメージ。'],regen:['再生','ターン終了時にHPを回復。その後1減る。'],bloomTurn:['芽吹き','毎ターン、開花を得る。'],drawTurn:['星よみ','毎ターン、追加でカードを引く。'],energyTurn:['調合炉','毎ターン、追加エナジーを得る。'],blockTurn:['月の加護','毎ターン、ブロックを得る。'],poisonTurn:['森の薬学','毎ターン、すべての敵に毒を与える。'],preserveBlock:['とこしえ','ターン開始時にブロックが消えない。']};
-  function getCard(instance){const base=cards[typeof instance==='string'?instance:instance.id];if(!base)return null;const up=!!instance.upgraded;const effects={...base.effects,...(up?base.upgrade:{})};const cost=effects.cost??base.cost;delete effects.cost;return {...base,effects,cost,upgraded:up,name:base.name+(up?'＋':'')};}
+  const basicNames={knight:{strike:'花びらの一閃',guard:'花結びの盾'},witch:{strike:'星弾のひと振り',guard:'月光の結界'},alchemist:{strike:'はじける小瓶',guard:'薬草の護り'},dragoon:{strike:'竜槍の突き',guard:'竜鱗の盾'},ranger:{strike:'銀月の双牙',guard:'影の構え'}};
+  function getCard(instance,hero){
+    const base=cards[typeof instance==='string'?instance:instance.id];if(!base)return null;
+    const up=!!instance.upgraded,effects={...base.effects,...(up?base.upgrade:{})},cost=effects.cost??base.cost;delete effects.cost;
+    const visualHero=hero||instance.visualHero;
+    const name=basicNames[visualHero]?.[base.id]||base.name;
+    return {...base,effects,cost,upgraded:up,visualHero,name:name+(up?'＋':'')};
+  }
+
   function describe(instance){const c=getCard(instance);const e=c.effects;const t=[];
     if(e.damage)t.push(`${e.aoe?'敵全体に':''}${e.damage}${e.hits?`×${e.hits}`:''}ダメージ。`);
     if(e.bloomScale)t.push(`開花1につき＋${e.bloomScale}ダメージ。`);
     if(e.frostScale)t.push(`敵の氷結1につき＋${e.frostScale}ダメージ。`);
     if(e.poisonScale)t.push(`敵の毒1につき＋${e.poisonScale}ダメージ。`);
+    if(e.heatScale)t.push(`灼熱1につき追加で＋${e.heatScale}ダメージ。`);
+    if(e.comboScale)t.push(`連携1につき＋${e.comboScale}ダメージ。`);
+    if(e.heat)t.push(`灼熱${e.heat}。`);
+    if(e.heatTurn)t.push(`毎ターン、灼熱＋${e.heatTurn}。`);
+    if(e.comboBlock)t.push(`連携1につき＋${e.comboBlock}ブロック。`);
     if(e.block)t.push(`${e.block}ブロック。`);
     if(e.bloomBlock)t.push(`開花1につき＋${e.bloomBlock}ブロック。`);
     if(e.bloom)t.push(`開花${e.bloom}。`);
@@ -160,6 +220,9 @@
     if(c.type==='curse'||c.type==='status')t.push(c.note);
     if(e.exhaust)t.push('廃棄。');return t.join(' ');
   }
-  const data={cards,heroes,relics,enemies,acts,potions,events,statusLabels,getCard,describe};
+  statusLabels.heat=['灼熱','攻撃の各ヒットに数値分のダメージを加える。アタックを使うと1減る。'];
+  statusLabels.heatTurn=['竜の灯火','毎ターン、灼熱を得る。'];
+  statusLabels.combo=['連携','このターン、すでに使ったカードの枚数。連携を持つ技の威力が上がる。'];
+  const data={cards,basicNames,heroes,relics,enemies,acts,potions,events,statusLabels,getCard,describe};
   if(typeof module!=='undefined'&&module.exports)module.exports=data;else root.BloomData=data;
 })(typeof window!=='undefined'?window:globalThis);

@@ -28,15 +28,18 @@
     uid() { return ++this.s.serial; }
     has(id) { return this.s.relics.includes(id); }
     expect(screen) { if(this.s?.screen!==screen)throw new Error('この画面では使えません。'); }
-    emit(type, target, value, label) { this.fx.push({type,target,value,label}); }
+    emit(type, target, value, label, extra={}) { this.fx.push({type,target,value,label,...extra}); }
     takeFx() { const e=this.fx; this.fx=[]; return e; }
     log(text) { if(this.s.battle){this.s.battle.log.push(text);this.s.battle.log=this.s.battle.log.slice(-30);} }
-    newRun(hero='knight',difficulty='adventure',seed) {
+    newRun(hero='knight',difficulty='adventure',seed,signature) {
       if(!D.heroes[hero]||!DIFFICULTIES[difficulty])throw new Error('冒険者を選んでください。');
+      signature=signature||D.heroes[hero].ultimates[0];
+      if(!D.heroes[hero].ultimates.includes(signature))throw new Error('この冒険者の必殺技を選んでください。');
       let seedText=String(seed||Math.random().toString(36).slice(2,10)).slice(0,32);let hash=2166136261;for(const c of seedText)hash=Math.imul(hash^c.charCodeAt(0),16777619);
       const maxHP=Math.round(D.heroes[hero].hp*DIFFICULTIES[difficulty].hp);
       this.s={version:1,hero,difficulty,seed:seedText,rng:hash>>>0||1,serial:0,screen:'map',act:0,row:-1,lane:1,map:[],path:[],hp:maxHP,maxHP,gold:99,deck:[],relics:[D.heroes[hero].relic],potions:['heal'],battle:null,reward:null,room:null,startedAt:Date.now(),stats:{battles:0,elites:0,turns:0,cards:0,damage:0,floors:0},won:false};
-      for(let i=0;i<4;i++)this.addCard('strike');for(let i=0;i<4;i++)this.addCard('guard');this.addCard(D.heroes[hero].starter);this.addCard(D.heroes[hero].starter);
+      this.s.signature=signature;
+      for(let i=0;i<4;i++)this.addCard('strike');for(let i=0;i<3;i++)this.addCard('guard');this.addCard(D.heroes[hero].starter);this.addCard(D.heroes[hero].starter);this.addCard(signature);
       this.s.map=this.makeMap();this.fx=[];return this.s;
     }
     addCard(id,upgraded=false) { if(!D.cards[id])throw new Error('カードが見つかりません。');const c={uid:this.uid(),id,upgraded};this.s.deck.push(c);return c; }
@@ -72,6 +75,10 @@
       if(kind==='boss')ids=[a.boss];else if(kind==='elite')ids=[this.pick(a.elite)];else if(this.s.act===0&&this.s.row===0)ids=[this.pick(['slime','shroom'])];else ids=this.pick(a.normal);
       this.s.screen='battle';this.s.battle={kind,turn:0,energy:0,maxEnergy:3,block:0,p:{},hand:[],draw:this.shuffle(clone(this.s.deck)),discard:[],exhaust:[],enemies:ids.map((id,i)=>this.createEnemy(id,i,kind)),firstBlock:true,log:[],attacksPlayed:0,played:0};
       const b=this.s.battle;
+      // The chosen signature opens each battle, provided it is still in the deck.
+      const signatureIndex=b.draw.findIndex(c=>c.id===this.s.signature);
+      if(signatureIndex>=0)b.draw.push(b.draw.splice(signatureIndex,1)[0]);
+      if(this.has('dragonscale'))b.p.heat=3;
       if(this.has('ribbon'))b.p.bloom=1;if(this.has('thorn'))b.p.thorns=3;if(this.has('sword'))b.p.strength=2;if(this.has('boots'))b.p.dexterity=2;if(this.has('seed'))b.p.bloomTurn=1;if(this.has('pearl'))b.p.regen=5;
       for(const e of b.enemies){if(this.has('moonstone'))e.frost+=2;if(this.has('vial'))e.poison+=2;if(this.has('crystal'))e.frost+=3;if(this.has('mask'))e.poison+=3;if(this.has('hourglass'))e.weak+=2;}
       this.startTurn();if(this.has('shell'))b.block+=10;this.log('花灯りが、あなたを見守っている。');
@@ -79,6 +86,8 @@
     drawCards(n) {const b=this.s.battle;for(let i=0;i<n;i++){if(b.hand.length>=10)break;if(!b.draw.length){if(!b.discard.length)break;b.draw=this.shuffle(b.discard);b.discard=[];this.emit('shuffle','player',0);this.log('捨て札をシャッフルして山札に戻した。');}b.hand.push(b.draw.pop());}}
     startTurn() {
       const b=this.s.battle;b.turn++;this.s.stats.turns++;b.firstBlock=true;b.played=0;b.attacksPlayed=0;
+      if(this.s.hero==='ranger')b.p.combo=0;
+      if(b.p.heatTurn||this.has('dragonscale'))b.p.heat=(b.p.heat||0)+(b.p.heatTurn||0)+(this.has('dragonscale')?1:0);
       if(!b.p.preserveBlock)b.block=0;
       b.maxEnergy=3+(this.has('lantern')?1:0)+(b.p.energyTurn||0);b.energy=b.maxEnergy+(b.turn===1&&this.has('bell')?1:0);
       if(b.p.bloomTurn)b.p.bloom=(b.p.bloom||0)+b.p.bloomTurn;
@@ -88,28 +97,30 @@
       this.drawCards(5+(this.has('feather')?1:0)+(b.p.drawTurn||0)+(b.turn===1&&this.has('moonstone')?1:0));
     }
     needsTarget(instance) {const e=D.getCard(instance)?.effects||{};return !e.aoe&&!!(e.damage||e.poison||e.frost||e.weak||e.vulnerable||e.poisonMultiply);}
-    damageFor(instance,enemy) {const c=D.getCard(instance),e=c.effects,p=this.s.battle.p;let n=(e.damage||0)+(p.strength||0)+(p.bloom||0)+(e.bloomScale||0)*(p.bloom||0)+(e.frostScale||0)*(enemy?.frost||0)+(e.poisonScale||0)*(enemy?.poison||0);if(p.weak)n*=.75;if(enemy?.vulnerable)n*=1.5;return Math.max(0,Math.floor(n));}
+    damageFor(instance,enemy) {const c=D.getCard(instance),e=c.effects,b=this.s.battle,p=b.p;let n=(e.damage||0)+(p.strength||0)+(p.bloom||0)+(p.heat||0)+(e.heatScale||0)*(p.heat||0)+(e.comboScale||0)*(b.played||0)+(e.bloomScale||0)*(p.bloom||0)+(e.frostScale||0)*(enemy?.frost||0)+(e.poisonScale||0)*(enemy?.poison||0);if(p.weak)n*=.75;if(enemy?.vulnerable)n*=1.5;return Math.max(0,Math.floor(n));}
     intent(enemy) {
       const source=D.enemies[enemy.id],a=clone(source.pattern[enemy.turn%source.pattern.length]);
       if(a.damage){let damage=Math.round(a.damage*DIFFICULTIES[this.s.difficulty].damage)+(enemy.strength||0)-(enemy.frost||0);damage=Math.max(0,damage);if(enemy.weak)damage*=.75;if(this.s.battle.p.vulnerable)damage*=1.5;a.damage=Math.max(0,Math.floor(damage));}return a;
     }
     enemyDamage(enemy,amount,piercing=false) {
-      if(enemy.hp<=0)return;let blocked=piercing?0:Math.min(enemy.block,amount);enemy.block-=blocked;const dealt=Math.min(enemy.hp,amount-blocked);enemy.hp-=dealt;this.s.stats.damage+=dealt;this.emit(piercing?'poison':'damage',enemy.uid,dealt,blocked?`防御 ${blocked}`:null);if(enemy.hp<=0)this.emit('defeat',enemy.uid,0);
+      if(enemy.hp<=0)return;let blocked=piercing?0:Math.min(enemy.block,amount);enemy.block-=blocked;const dealt=Math.min(enemy.hp,amount-blocked);enemy.hp-=dealt;this.s.stats.damage+=dealt;this.emit(piercing?'poison':'damage',enemy.uid,dealt,blocked?`防御 ${blocked}`:null,{hp:enemy.hp,maxHP:enemy.maxHP,block:enemy.block,blocked});if(enemy.hp<=0)this.emit('defeat',enemy.uid,0);
       if(enemy.boss&&!enemy.enraged&&enemy.hp>0&&enemy.hp<=enemy.maxHP*.5){enemy.enraged=true;enemy.strength+=2+this.s.act;this.emit('buff',enemy.uid,2+this.s.act,'覚醒');this.log(`${enemy.name}が覚醒！ 筋力が${2+this.s.act}増えた。`);}
     }
-    playerDamage(amount,piercing=false,source) {const b=this.s.battle;const blocked=piercing?0:Math.min(b.block,amount);b.block-=blocked;const n=amount-blocked;this.s.hp=Math.max(0,this.s.hp-n);this.emit(n?'damage':'block','player',n||blocked);if(source&&b.p.thorns)this.enemyDamage(source,b.p.thorns,true);}
+    playerDamage(amount,piercing=false,source) {const b=this.s.battle;const blocked=piercing?0:Math.min(b.block,amount);b.block-=blocked;const n=amount-blocked;this.s.hp=Math.max(0,this.s.hp-n);this.emit(n?'damage':'block','player',n||blocked,null,{hp:this.s.hp,maxHP:this.s.maxHP,block:b.block,blocked,source:source?.uid});if(source&&b.p.thorns)this.enemyDamage(source,b.p.thorns,true);}
     play(uid,targetUid) {
-      this.expect('battle');const b=this.s.battle;const index=b.hand.findIndex(c=>c.uid===Number(uid));if(index<0)throw new Error('そのカードは手札にありません。');const instance=b.hand[index],c=D.getCard(instance),e=c.effects;
+      this.expect('battle');const b=this.s.battle;const index=b.hand.findIndex(c=>c.uid===Number(uid));if(index<0)throw new Error('そのカードは手札にありません。');const instance=b.hand[index],c=D.getCard(instance,this.s.hero),e=c.effects;
       if(c.cost<0)throw new Error('このカードはプレイできません。');if(c.cost>b.energy)throw new Error('エナジーが足りません。');
       const target=b.enemies.find(x=>x.uid===targetUid&&x.hp>0);if(this.needsTarget(instance)&&!target)throw new Error('対象の敵を選んでください。');
-      b.energy-=c.cost;b.hand.splice(index,1);b.played++;this.s.stats.cards++;this.emit('card','player',c.art,c.name);this.log(`${c.name}を使った。`);
+      b.energy-=c.cost;b.hand.splice(index,1);this.s.stats.cards++;this.log(`${c.name}を使った。`);
       const targets=e.aoe?b.enemies.filter(x=>x.hp>0):(target?[target]:[]);
-      if(e.damage){for(let i=0;i<(e.hits||1);i++)for(const enemy of targets)if(enemy.hp>0)this.enemyDamage(enemy,this.damageFor(instance,enemy));b.attacksPlayed++;}
-      if(e.block){let n=e.block+(b.p.dexterity||0)+(e.bloomBlock||0)*(b.p.bloom||0);if(b.firstBlock&&this.has('clover'))n+=3;b.firstBlock=false;b.block+=n;this.emit('block','player',n);}
+      this.emit('card','player',c.art,c.name,{cardId:c.id,cardUid:instance.uid,hero:this.s.hero,ultimate:c.ultimate,targets:targets.map(t=>t.uid)});
+      if(e.damage){for(let i=0;i<(e.hits||1);i++)for(const enemy of targets)if(enemy.hp>0)this.enemyDamage(enemy,this.damageFor(instance,enemy));if(!b.attacksPlayed&&this.has('wolfcharm')){b.block+=3;this.emit('block','player',3);}b.attacksPlayed++;if(b.p.heat)b.p.heat=Math.max(0,b.p.heat-1);}
+      if(e.block){let n=e.block+(b.p.dexterity||0)+(e.bloomBlock||0)*(b.p.bloom||0)+(e.comboBlock||0)*b.played;if(b.firstBlock&&this.has('clover'))n+=3;b.firstBlock=false;b.block+=n;this.emit('block','player',n);}
       for(const enemy of targets)if(enemy.hp>0){for(const key of ['poison','frost','weak','vulnerable'])if(e[key]){enemy[key]+=e[key];this.emit('status',enemy.uid,e[key],D.statusLabels[key][0]);}if(e.poisonMultiply){enemy.poison*=e.poisonMultiply;this.emit('status',enemy.uid,enemy.poison,'毒');}}
-      for(const key of ['bloom','strength','dexterity','thorns','regen','bloomTurn','drawTurn','energyTurn','blockTurn','poisonTurn'])if(e[key])b.p[key]=(b.p[key]||0)+e[key];
+      for(const key of ['bloom','strength','dexterity','thorns','regen','bloomTurn','drawTurn','energyTurn','blockTurn','poisonTurn','heat','heatTurn'])if(e[key]){b.p[key]=(b.p[key]||0)+e[key];this.emit('buff','player',e[key],D.statusLabels[key][0]);}
       if(e.preserveBlock)b.p.preserveBlock=true;if(e.energy)b.energy+=e.energy;if(e.heal)this.heal(e.heal);
       if(e.draw)this.drawCards(e.draw);
+      b.played++;if(this.s.hero==='ranger')b.p.combo=b.played;
       if(e.exhaust||c.type==='power')b.exhaust.push(instance);else b.discard.push(instance);
       this.checkEnd();return c;
     }
@@ -167,7 +178,7 @@
         case 'labor':this.s.hp-=o.value;this.s.gold+=65;room.result='小鳥はうれしそう！ お礼に65ゴールドをくれた。';break;
         case 'feed':this.s.maxHP+=6;this.heal(6);room.result='最大HPが6増えた。';break;
         case 'cake':this.s.maxHP+=10;this.heal(10);room.result='あまい幸せ！ 最大HPが10増えた。';break;
-        case 'upgrade':{const cs=this.shuffle(this.s.deck.filter(c=>!c.upgraded&&!['curse','status'].includes(D.cards[c.id].type))).slice(0,o.value);for(const c of cs)c.upgraded=true;room.result=cs.length?cs.map(c=>D.getCard(c).name).join('、')+'を強化した。':'強化できるカードがない。代わりに40ゴールドを見つけた。';if(!cs.length)this.s.gold+=40;break;}
+        case 'upgrade':{const cs=this.shuffle(this.s.deck.filter(c=>!c.upgraded&&!['curse','status'].includes(D.cards[c.id].type))).slice(0,o.value);for(const c of cs)c.upgraded=true;room.result=cs.length?cs.map(c=>D.getCard(c,this.s.hero).name).join('、')+'を強化した。':'強化できるカードがない。代わりに40ゴールドを見つけた。';if(!cs.length)this.s.gold+=40;break;}
         case 'remove':room.done=false;room.removing=true;break;
         case 'rare':{this.s.hp-=o.value;const c=this.pick(this.cardPool('rare'));this.addCard(c.id);room.result=`「${c.name}」を手に入れた。`;break;}
         case 'buyRelic':relic();break;

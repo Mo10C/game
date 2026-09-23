@@ -7,7 +7,7 @@ root = Path(__file__).resolve().parents[1]
 public = root / "dist" if (root / "dist" / "index.html").exists() else root
 html = (public / "index.html").read_text(encoding="utf-8")
 css = (public / "style.css").read_text(encoding="utf-8")
-scripts = {name: (public / name).read_text(encoding="utf-8") for name in ("data.js", "engine.js", "app.js")}
+scripts = {name: (public / name).read_text(encoding="utf-8") for name in ("data.js", "engine.js", "card-art.js", "battle-fx.js", "app.js")}
 for path in sorted((public / "assets").glob("*.png")):
     encoded = "data:image/png;base64," + base64.b64encode(path.read_bytes()).decode("ascii")
     reference = "./assets/" + path.name
@@ -18,7 +18,7 @@ for name, source in scripts.items():
     # Prevent a string literal from closing an inline script element.
     source = source.replace("</script", "<\\/script")
     html = html.replace('<script src="./' + name + '"></script>', '<script>\n' + source + '\n</script>')
-if re.search(r'(?:href|src)=["\']\./', html) or 'url(\'./' in html:
+if re.search(r'(?:href|src)=["\']\./', html) or './assets/' in html or 'url(\'./' in html:
     raise RuntimeError("The standalone output still contains a local dependency")
 destination = root.parent / "BloomSpire-Play.html"
 destination.write_text(html, encoding="utf-8")

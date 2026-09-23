@@ -77,3 +77,72 @@ test('every collectible card resolves validly, including upgrades and all hero m
     assert.ok(Number.isFinite(e.s.hp),id);assert.ok(Number.isFinite(enemy.hp),id);assert.ok(Number.isFinite(e.s.battle.block),id);assert.ok(e.s.hp<=e.s.maxHP,id);assert.ok(D.describe(c).length>0,id);
   }
 });
+
+test('five heroes each have three distinct ultimate cards, and the selected one opens battle',()=>{
+  assert.equal(Object.keys(D.heroes).length,5);const effects=new Set();
+  for(const h of Object.values(D.heroes)){
+    assert.equal(h.ultimates.length,3);
+    for(const id of h.ultimates){
+      const e=new Engine();e.newRun(h.id,'adventure','SIGNATURE',id);assert.equal(e.s.deck.length,10);
+      e.chooseNode(e.availableNodes()[0].id);const c=e.s.battle.hand.find(c=>c.id===id);assert.ok(c,id);
+      assert.equal(D.cards[id].hero,h.id);assert.ok(D.cards[id].ultimate);effects.add(D.cards[id].ultimate.fx);
+      e.s.battle.energy=10;e.s.battle.enemies[0].hp=500;e.s.battle.enemies[0].maxHP=500;e.takeFx();
+      e.play(c.uid,e.s.battle.enemies[0].uid);const fx=e.takeFx();
+      assert.equal(fx.filter(f=>f.type==='card'&&f.ultimate).length,1,id);
+      assert.equal(fx[0].cardId,id);assert.ok(e.s.battle.exhaust.some(x=>x.uid===c.uid),id);
+      assert.throws(()=>e.play(c.uid,'enemy0'));assert.deepEqual(e.takeFx(),[]);
+      assert.deepEqual(new Engine(e.serialize()).s,e.s);
+    }
+  }
+  assert.equal(effects.size,15);
+});
+test('invalid signatures and failed ultimates preserve state and emit no animation',()=>{
+  const e=battle();const before=e.serialize();assert.throws(()=>e.newRun('knight','adventure','BAD','sunfall'));assert.equal(e.serialize(),before);
+  const [c]=hand(e,['roseoath']);e.s.battle.energy=0;e.takeFx();const zero=e.serialize();assert.throws(()=>e.play(c.uid,'enemy0'));assert.equal(e.serialize(),zero);assert.deepEqual(e.takeFx(),[]);
+});
+test('heat applies to every hit and decays once per attack, while combo counts preceding cards',()=>{
+  const e=battle('dragoon'),b=e.s.battle,enemy=b.enemies[0];enemy.hp=500;enemy.maxHP=500;
+  assert.equal(b.p.heat,4);const [c]=hand(e,['dragonfang']);assert.equal(e.damageFor(c,enemy),11);e.play(c.uid,enemy.uid);assert.equal(enemy.hp,478);assert.equal(b.p.heat,3);
+  const n=battle('ranger'),nb=n.s.battle,ne=nb.enemies[0];ne.hp=500;ne.maxHP=500;const [a,cut,second]=hand(n,['feint','crossmoon','twinfang']);
+  n.play(a.uid);assert.equal(nb.played,1);assert.equal(n.damageFor(cut,ne),10);n.play(cut.uid,ne.uid);assert.equal(ne.hp,480);assert.equal(nb.block,6);assert.equal(nb.p.combo,2);
+  n.play(second.uid,ne.uid);assert.equal(nb.block,6);n.endTurn();assert.equal(nb.p.combo,0);assert.equal(nb.played,0);
+});
+test('pre-expansion saves load without injecting cards or changing ongoing battles',()=>{
+  const e=battle();delete e.s.signature;e.s.deck=e.s.deck.filter(c=>!D.cards[c.id].ultimate);e.s.battle.hand=e.s.battle.hand.filter(c=>!D.cards[c.id].ultimate);
+  const old=e.serialize(),loaded=new Engine(old);assert.equal(loaded.serialize(),old);loaded.endTurn();assert.ok(['battle','reward','result'].includes(loaded.s.screen));
+});
+test('hit events retain intermediate HP values for sequential playback and lethal resolution is atomic',()=>{
+  const e=battle('ranger'),b=e.s.battle;b.enemies[0].hp=13;b.enemies[0].maxHP=20;const [c]=hand(e,['crossmoon']);e.takeFx();e.play(c.uid,'enemy0');
+  const fx=e.takeFx(),hits=fx.filter(f=>f.type==='damage'&&f.target==='enemy0');assert.deepEqual(hits.map(f=>f.hp),[5,0]);assert.equal(e.s.screen,'reward');assert.equal(e.s.stats.battles,1);const gold=e.s.gold;assert.throws(()=>e.play(c.uid,'enemy0'));assert.equal(e.s.gold,gold);
+});
+
+test('basic cards show each hero identity without changing saved card IDs or battle rules',()=>{
+  const strikeNames=new Set(),guardNames=new Set();
+  for(const hero of Object.keys(D.heroes)){
+    for(const id of ['strike','guard']){
+      const instance={id,uid:77,upgraded:false},before=JSON.stringify(instance);
+      const c=D.getCard(instance,hero),up=D.getCard({...instance,upgraded:true},hero);
+      (id==='strike'?strikeNames:guardNames).add(c.name);
+      assert.equal(c.id,id);assert.equal(up.name,c.name+'＋');
+      assert.deepEqual(c.effects,D.getCard(id).effects);assert.equal(JSON.stringify(instance),before);
+    }
+    const e=battle(hero),[c]=hand(e,['strike']);e.takeFx();e.play(c.uid,e.s.battle.enemies[0].uid);
+    assert.equal(e.takeFx()[0].label,D.getCard(c,hero).name);
+  }
+  assert.equal(strikeNames.size,5);assert.equal(guardNames.size,5);
+});
+
+test('all 100 card illustrations have independent atlas cells and shipped PNG assets',()=>{
+  const Art=require(base+'card-art.js'),path=require('node:path'),cells=new Set();
+  for(const [id,c] of Object.entries(D.cards)){
+    const heroes=['strike','guard'].includes(id)?Object.keys(D.heroes):[c.hero==='all'?'knight':c.hero];
+    for(const hero of heroes){
+      const art=Art.get(id,hero),cell=art.src+':'+art.index;
+      assert.ok(art.index>=0&&art.index<20,id);assert.ok(!cells.has(cell),cell);cells.add(cell);
+      const png=fs.readFileSync(path.resolve(__dirname,base,art.src));
+      assert.equal(png.subarray(1,4).toString(),'PNG');
+      assert.ok(png.readUInt32BE(16)>=1500,art.src);
+    }
+  }
+  assert.equal(cells.size,100);
+});
