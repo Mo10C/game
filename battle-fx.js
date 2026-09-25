@@ -86,8 +86,8 @@
       const u=card.ultimate,h=D.heroes[u.hero];
       if(!this.motion){this.options.announce?.(`${h.name}の必殺技、${card.name}`);return;}
       this.focusBefore=document.activeElement;
-      const cut=document.createElement('div');cut.className=`ultimate-cutin composition-${u.index}`;cut.style.setProperty('--ult-color',h.color);cut.dataset.effect=u.fx;cut.setAttribute('role','status');
-      cut.innerHTML=`<div class="cutin-shade"></div><div class="cutin-band"><div class="cutin-speed"></div><span class="cutin-watermark" aria-hidden="true">${u.en}</span><div class="cutin-halo"></div><div class="cutin-character">${portrait(u.hero,u.index)}</div><div class="cutin-copy"><p class="cutin-kicker">${this.options.preview?'SPECIAL PREVIEW':'ULTIMATE ART'} <span>0${u.index+1}</span></p><span class="cutin-hero">${h.name} <i>／ ${h.role}</i></span><h2>${esc(card.name.replace('＋',''))}</h2><p class="cutin-en">${u.en}</p><span class="cutin-rule"></span><p class="cutin-quote">「${h.quote}」</p></div><span class="cutin-seal">奥義</span></div>`;
+      const cut=document.createElement('div');cut.className=`ultimate-cutin composition-${u.index}${card.branch?' evolved-cutin branch-'+card.branch:''}`;cut.style.setProperty('--ult-color',h.color);cut.dataset.effect=u.fx;cut.setAttribute('role','status');
+      cut.innerHTML=`<div class="cutin-shade"></div><div class="cutin-band"><div class="cutin-speed"></div><span class="cutin-watermark" aria-hidden="true">${u.en}</span><div class="cutin-halo"></div><div class="cutin-character">${portrait(u.hero,u.index)}</div><div class="cutin-copy"><p class="cutin-kicker">${card.branch?'ASCENDED · '+card.branchName:this.options.preview?'SPECIAL PREVIEW':'ULTIMATE ART'} <span>0${u.index+1}</span></p><span class="cutin-hero">${h.name} <i>／ ${h.role}</i></span><h2>${esc(card.name.replace(/＋/g,''))}</h2><p class="cutin-en">${u.en}</p><span class="cutin-rule"></span><p class="cutin-quote">「${h.quote}」</p></div><span class="cutin-seal">${card.branch?'極奥義':'奥義'}</span></div>`;
       document.body.appendChild(cut);this.cutin=cut;
       const skip=document.createElement('button');skip.className='cutin-skip';skip.textContent='演出をスキップ [Esc]';skip.addEventListener('click',()=>this.skip());document.body.appendChild(skip);this.skipButton=skip;skip.focus({preventScroll:true});
       this.options.announce?.(`${h.name}、${card.name}！`);this.sound('charge',u.index);
@@ -126,14 +126,19 @@
       else if(targets.length){for(const id of targets)this.projectile(from,this.point(id),this.color[0]);await this.wait(290);for(const id of targets)this.ring(this.point(id),this.color[0],65,440);}
       else {this.ring(from,card.effects.block?'#a8dcff':this.color[0],100,650);await this.wait(150);}
     }
+    async evolutionPrelude(card,targets){if(!this.motion||this.cancelled)return;const from=this.point('player'),banner=document.createElement('div');banner.className='evolution-banner branch-'+card.branch;banner.innerHTML=`<span>✦ ${card.branch==='power'?'POWER':'TECHNIQUE'} EVOLUTION</span><b>${esc(card.name)} <i>— ${card.branchName}</i></b>`;this.root.appendChild(banner);for(let i=0;i<3;i++)this.ring(from,this.color[i],80+i*42,800,i*100);this.burst(from,36,this.color[1],card.branch==='power'?'spark':'crystal',1.2);this.sound('chime');await this.wait(card.ultimate?400:230);}
+    evolvedImpact(card,targets){const points=targets.length?targets.map(id=>this.point(id)):[this.point('player')],from=this.point('player');for(const p of points){if(card.branch==='power'){this.beam(from,p,this.color[1],card.ultimate?42:22,700);for(let i=0;i<3;i++)this.ring(p,this.color[i],110+i*44,800,i*90);this.burst(p,card.ultimate?90:45,this.color[0],this.options.hero==='knight'?'petal':'spark',1.65);}else{for(let i=0;i<5;i++){this.slash(p,-1.2+i*.55,this.color[i%3],.75+i*.13,i*85);this.ring(p,this.color[i%3],60+i*23,700,i*70);}this.burst(p,card.ultimate?70:35,this.color[1],this.options.hero==='alchemist'?'mote':'crystal',1.3);}}}
     async run(effects){
-      const opener=effects.find(e=>e.type==='card'),card=opener&&D.getCard(opener.cardId,this.options.hero);
+      const opener=effects.find(e=>e.type==='card'),card=opener&&D.getCard({id:opener.cardId,upgraded:opener.upgraded,branch:opener.branch},this.options.hero);
+      if(card?.branch){this.color=card.branch==='power'?[this.color[0],'#fff3bd','#ffcd65']:['#b6eaff',this.color[0],'#e0c2ff'];await this.evolutionPrelude(card,opener.targets);}
       if(card?.ultimate){await this.cutIn(card);if(this.cancelled)return;this.ultimateImpact(card,opener.targets);await this.wait(170);}
       else if(card)await this.ordinary(card,opener.targets);
+      if(card?.branch&&!this.cancelled)this.evolvedImpact(card,opener.targets);
       let damageIndex=0;
       for(const e of effects){
         if(this.cancelled)break;
         if(e.type==='card')continue;
+        if(e.type==='relic'){const token=document.querySelector(`[data-action="relic"][data-id="${e.relicId}"]`);this.animate(token,[{boxShadow:'0 0 0 transparent'},{boxShadow:'0 0 26px #ffdf8a',background:'#5d4b26'},{boxShadow:'0 0 0 transparent'}],900);const tag=document.createElement('span');tag.className='relic-activation';tag.textContent='✦ '+e.label;tag.style.top=(22+(this.relicCount||0)*40)+'px';this.relicCount=(this.relicCount||0)+1;this.root.appendChild(tag);continue;}
         if(e.type==='enemyAction'){
           const from=this.point(e.target),to=this.point('player');
           this.animate(from.node?.querySelector('.combat-sprite'),[{transform:'translateX(0)'},{transform:'translateX(12px)',offset:.3},{transform:'translateX(-40px) rotate(-6deg)',offset:.65},{transform:'translateX(0)'}],450);
@@ -152,7 +157,7 @@
   }
   const API={portrait,
     async play(effects,options){if(active)return;const playback=new Playback(options);active=playback;try{await playback.run(effects);}finally{playback.dispose();if(active===playback)active=null;}},
-    async preview(id,options){const c=D.getCard(id);if(!c?.ultimate)return;const targets=c.effects.damage||c.effects.poison||c.effects.frost?['preview-enemy']:[];await API.play([{type:'card',cardId:id,hero:c.hero,ultimate:c.ultimate,targets}],{...options,hero:c.hero,preview:true});},
+    async preview(id,options){const c=D.getCard({id,upgraded:!!options.branch,branch:options.branch},options.hero);if(!c)return;const hero=c.hero==='all'?options.hero||'knight':c.hero,targets=c.effects.damage||c.effects.poison||c.effects.frost?['preview-enemy']:[];await API.play([{type:'card',cardId:id,hero,ultimate:c.ultimate,branch:c.branch,upgraded:c.upgraded,targets}],{...options,hero,preview:true});},
     skip(){active?.skip();},get running(){return !!active;}
   };
   window.addEventListener('pagehide',()=>API.skip());

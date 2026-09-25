@@ -1,6 +1,6 @@
 (function (root) {
   'use strict';
-  const D = typeof module !== 'undefined' && module.exports ? require('./data.js') : root.BloomData;
+  const D = typeof module !== 'undefined' && module.exports ? require('./expansion-data.js') : root.BloomData;
   const clone = value => JSON.parse(JSON.stringify(value));
   const DIFFICULTIES = {picnic:{name:'おさんぽ',hp:1.15,enemyHP:.85,damage:.85,gold:1.15},adventure:{name:'冒険',hp:1,enemyHP:1,damage:1,gold:1},moonlight:{name:'月夜の試練',hp:1,enemyHP:1.35,damage:1.35,gold:1}};
   class Engine {
@@ -8,9 +8,9 @@
     load(saved) {
       const s = typeof saved === 'string' ? JSON.parse(saved) : clone(saved);
       if (!s || s.version !== 1 || !D.heroes[s.hero] || !DIFFICULTIES[s.difficulty] || !Array.isArray(s.deck) || !s.deck.every(c=>D.cards[c.id]) || !Number.isFinite(s.hp) || !Array.isArray(s.map)) throw new Error('この冒険の記録は読み込めません。');
-      const validCard=c=>c&&Object.hasOwn(D.cards,c.id)&&Number.isSafeInteger(c.uid)&&typeof c.upgraded==='boolean';
+      const validCard=c=>c&&Object.hasOwn(D.cards,c.id)&&Number.isSafeInteger(c.uid)&&typeof c.upgraded==='boolean'&&(!c.branch||(c.upgraded&&['power','technique'].includes(c.branch)&&!['curse','status'].includes(D.cards[c.id].type)));
       const finite=n=>typeof n==='number'&&Number.isFinite(n);
-      if(!Number.isInteger(s.act)||s.act<0||s.act>2||!Number.isInteger(s.row)||s.row< -1||s.row>11||!finite(s.maxHP)||s.maxHP<=0||s.hp<0||s.hp>s.maxHP||!finite(s.gold)||s.gold<0||!Number.isSafeInteger(s.serial)||!finite(s.rng)||!finite(s.startedAt)||!s.stats||!['battles','elites','turns','cards','damage','floors'].every(k=>finite(s.stats[k]))||!s.deck.length||!s.deck.every(validCard)||!Array.isArray(s.relics)||!s.relics.every(id=>Object.hasOwn(D.relics,id))||!Array.isArray(s.potions)||s.potions.length>3||!s.potions.every(id=>Object.hasOwn(D.potions,id))||s.map.length!==12||!s.map.every(row=>Array.isArray(row)&&row.every(n=>n&&['battle','elite','boss','rest','event','shop','treasure'].includes(n.kind)&&Array.isArray(n.links)))||!Array.isArray(s.path))throw new Error('冒険の記録に読み込めない項目があります。');
+      if(!Number.isInteger(s.act)||s.act<0||s.act>9999||!Number.isInteger(s.row)||s.row< -1||s.row>11||!finite(s.maxHP)||s.maxHP<=0||s.hp<0||s.hp>s.maxHP||!finite(s.gold)||s.gold<0||!Number.isSafeInteger(s.serial)||!finite(s.rng)||!finite(s.startedAt)||!s.stats||!['battles','elites','turns','cards','damage','floors'].every(k=>finite(s.stats[k]))||!s.deck.length||!s.deck.every(validCard)||!Array.isArray(s.relics)||!s.relics.every(id=>Object.hasOwn(D.relics,id))||!Array.isArray(s.potions)||s.potions.length>3||!s.potions.every(id=>Object.hasOwn(D.potions,id))||s.map.length!==12||!s.map.every(row=>Array.isArray(row)&&row.every(n=>n&&['battle','elite','boss','rest','event','shop','treasure'].includes(n.kind)&&Array.isArray(n.links)))||!Array.isArray(s.path))throw new Error('冒険の記録に読み込めない項目があります。');
       if(!['map','battle','reward','rest','shop','event','treasure','bossReward','result'].includes(s.screen))throw new Error('冒険の記録が壊れています。');
       if(s.screen==='battle'&&(!s.battle||!Array.isArray(s.battle.hand)||!Array.isArray(s.battle.enemies)))throw new Error('戦闘の記録が壊れています。');
       if(s.screen==='battle'&&(!['hand','draw','discard','exhaust'].every(k=>Array.isArray(s.battle[k])&&s.battle[k].every(validCard))||!s.battle.enemies.every(e=>Object.hasOwn(D.enemies,e.id)&&finite(e.hp)&&finite(e.maxHP)&&finite(e.block))||!s.battle.p||!finite(s.battle.energy)||!Array.isArray(s.battle.log)))throw new Error('戦闘の記録が壊れています。');
@@ -19,6 +19,7 @@
       if(s.screen==='shop'&&(!s.room||!['cards','relics','potions'].every(k=>Array.isArray(s.room[k]))||!s.room.cards.every(validCard)||!s.room.relics.every(r=>Object.hasOwn(D.relics,r.id))||!s.room.potions.every(p=>Object.hasOwn(D.potions,p.id))))throw new Error('ショップの記録が壊れています。');
       if(s.screen==='bossReward'&&(!s.room||!Array.isArray(s.room.relics)||!s.room.relics.every(id=>Object.hasOwn(D.relics,id))))throw new Error('宝物の記録が壊れています。');
       if(s.screen==='treasure'&&(!s.room||(s.room.relic&&!Object.hasOwn(D.relics,s.room.relic))))throw new Error('宝箱の記録が壊れています。');
+      if(s.mode!==undefined&&!['story','ascent'].includes(s.mode)||s.rank!==undefined&&(!Number.isInteger(s.rank)||s.rank<0||s.rank>10)||s.clearedStages!==undefined&&(!Number.isInteger(s.clearedStages)||s.clearedStages<0||s.clearedStages>s.act+1)||s.costume!==undefined&&!['default','festival','dawn'].includes(s.costume)||(s.mode!=='ascent'&&s.act>=5))throw new Error('踏破の記録が壊れています。');
       this.s=s;this.fx=[];return this.s;
     }
     serialize() { return JSON.stringify(this.s); }
@@ -31,14 +32,15 @@
     emit(type, target, value, label, extra={}) { this.fx.push({type,target,value,label,...extra}); }
     takeFx() { const e=this.fx; this.fx=[]; return e; }
     log(text) { if(this.s.battle){this.s.battle.log.push(text);this.s.battle.log=this.s.battle.log.slice(-30);} }
-    newRun(hero='knight',difficulty='adventure',seed,signature) {
+    newRun(hero='knight',difficulty='adventure',seed,signature,options={}) {
       if(!D.heroes[hero]||!DIFFICULTIES[difficulty])throw new Error('冒険者を選んでください。');
       signature=signature||D.heroes[hero].ultimates[0];
       if(!D.heroes[hero].ultimates.includes(signature))throw new Error('この冒険者の必殺技を選んでください。');
+      const mode=options.mode||'story',rank=mode==='ascent'?(options.rank||1):0,costume=options.costume||'default';if(!['story','ascent'].includes(mode)||!Number.isInteger(rank)||rank<0||rank>10||!['default','festival','dawn'].includes(costume))throw new Error('旅の設定を選び直してください。');
       let seedText=String(seed||Math.random().toString(36).slice(2,10)).slice(0,32);let hash=2166136261;for(const c of seedText)hash=Math.imul(hash^c.charCodeAt(0),16777619);
       const maxHP=Math.round(D.heroes[hero].hp*DIFFICULTIES[difficulty].hp);
       this.s={version:1,hero,difficulty,seed:seedText,rng:hash>>>0||1,serial:0,screen:'map',act:0,row:-1,lane:1,map:[],path:[],hp:maxHP,maxHP,gold:99,deck:[],relics:[D.heroes[hero].relic],potions:['heal'],battle:null,reward:null,room:null,startedAt:Date.now(),stats:{battles:0,elites:0,turns:0,cards:0,damage:0,floors:0},won:false};
-      this.s.signature=signature;
+      this.s.signature=signature;Object.assign(this.s,{mode,rank,costume,title:options.title||'traveler',clearedStages:0});
       for(let i=0;i<4;i++)this.addCard('strike');for(let i=0;i<3;i++)this.addCard('guard');this.addCard(D.heroes[hero].starter);this.addCard(D.heroes[hero].starter);this.addCard(signature);
       this.s.map=this.makeMap();this.fx=[];return this.s;
     }
@@ -63,16 +65,21 @@
     rollCards(count=3,rareBonus=false) {
       const result=[];for(let i=0;i<count;i++){const p=this.random();const rarity=rareBonus?(p<.38?'rare':'uncommon'):(p<.10?'rare':p<.4?'uncommon':'common');let pool=this.cardPool(rarity).filter(c=>!result.some(r=>r.id===c.id));if(!pool.length)pool=this.cardPool().filter(c=>!result.some(r=>r.id===c.id));result.push({id:this.pick(pool).id,upgraded:this.s.act>0&&this.random()<.16,uid:this.uid()});}return result;
     }
-    rollRelics(count=1,boss=false) { const pool=Object.keys(D.relics).filter(id=>!D.relics[id].starter&&!this.has(id)&&(boss?D.relics[id].boss:!D.relics[id].boss));return this.shuffle(pool).slice(0,count); }
+    rollRelics(count=1,boss=false){const eligible=id=>!D.relics[id].starter&&!this.has(id)&&(!D.relics[id].hero||D.relics[id].hero===this.s.hero),exclusive=this.shuffle(Object.keys(D.relics).filter(id=>eligible(id)&&D.relics[id].hero)),pool=this.shuffle(Object.keys(D.relics).filter(id=>eligible(id)&&(boss?D.relics[id].boss:!D.relics[id].boss)));return [...(boss?exclusive.slice(0,1):[]),...pool].filter((id,i,a)=>a.indexOf(id)===i).slice(0,count);}
+    scaling(){const cycle=Math.floor(this.s.act/5),rank=this.s.mode==='ascent'?this.s.rank||1:0;return {hp:1+rank*.15+cycle*.45,damage:1+rank*.10+cycle*.18};}
+    triggerRelic(id){const b=this.s.battle;b.relicUsed=b.relicUsed||{};b.relicUsed[id]=(b.relicUsed[id]||0)+1;this.emit('relic','player',0,D.relics[id].name,{relicId:id});this.log('✦ '+D.relics[id].name+'が発動。');}
+    relicStatus(id){const b=this.s.screen==='battle'?this.s.battle:null,r=D.relics[id];if(!b)return '所持中';const used=b.relicUsed?.[id]||0;if(id==='silvermetronome')return `${b.played%3} / 3枚${used?' · 発動'+used:''}`;if(used)return '発動 '+used;if(['sunemblem','petalseal','embercore'].includes(id)&&b.attacksPlayed)return '次ターン待機';if(id==='moonpin')return `連携 ${b.played} / 2`;if(id==='sunemblem')return `灼熱 ${b.p.heat||0} / 6`;if(id==='petalseal')return `開花 ${b.p.bloom||0} / 5`;return r.hero?'待機':'有効';}
+    allTargets(instance){const c=D.getCard(instance),b=this.s.battle;return !!(c.effects.aoe||(c.effects.damage&&!b.attacksPlayed&&((this.has('petalseal')&&(b.p.bloom||0)>=5)||(this.has('sunemblem')&&(b.p.heat||0)>=6))));}
+
     addRelic(id) {if(!id||this.has(id))return false;this.s.relics.push(id);if(id==='cookie'){this.s.maxHP+=12;this.heal(12);}return true;}
     heal(n) {const amount=Math.min(n,this.s.maxHP-this.s.hp);this.s.hp+=amount;if(amount>0)this.emit('heal','player',amount);return amount;}
     createEnemy(id,index,kind) {
-      const t=D.enemies[id];const scale=DIFFICULTIES[this.s.difficulty].enemyHP;const extra=t.elite?1+this.s.act*.22:t.boss?1:1+this.s.act*.08;
-      const maxHP=Math.round(t.hp*scale*extra);return {id,uid:`enemy${index}`,name:t.name,sprite:t.sprite,hp:maxHP,maxHP,block:0,strength:0,poison:0,frost:0,weak:0,vulnerable:0,turn:0,enraged:false,boss:!!t.boss,elite:!!t.elite};
+      const t=D.enemies[id];const scale=DIFFICULTIES[this.s.difficulty].enemyHP*this.scaling().hp,world=this.s.act%5;const extra=t.elite?1+world*.15:t.boss?1:1+world*.06;
+      const maxHP=Math.round(t.hp*scale*extra);return {id,uid:`enemy${index}`,name:t.name,sprite:t.sprite,hp:maxHP,maxHP,block:0,strength:0,poison:0,frost:0,weak:0,vulnerable:0,turn:0,enraged:false,boss:!!t.boss,elite:!!t.elite,petals:id==='bossRose'?3:0,interrupt:0};
     }
     startBattle(kind) {
-      const a=D.acts[this.s.act];let ids;
-      if(kind==='boss')ids=[a.boss];else if(kind==='elite')ids=[this.pick(a.elite)];else if(this.s.act===0&&this.s.row===0)ids=[this.pick(['slime','shroom'])];else ids=this.pick(a.normal);
+      const a=D.actFor(this.s.act);let ids;
+      if(kind==='boss')ids=a.boss==='bossDragon'?['crystalguard',a.boss,'crystalguard']:[a.boss];else if(kind==='elite')ids=[this.pick(a.elite)];else if(this.s.act===0&&this.s.row===0)ids=[this.pick(['slime','shroom'])];else ids=this.pick(a.normal);
       this.s.screen='battle';this.s.battle={kind,turn:0,energy:0,maxEnergy:3,block:0,p:{},hand:[],draw:this.shuffle(clone(this.s.deck)),discard:[],exhaust:[],enemies:ids.map((id,i)=>this.createEnemy(id,i,kind)),firstBlock:true,log:[],attacksPlayed:0,played:0};
       const b=this.s.battle;
       // The chosen signature opens each battle, provided it is still in the deck.
@@ -85,7 +92,7 @@
     }
     drawCards(n) {const b=this.s.battle;for(let i=0;i<n;i++){if(b.hand.length>=10)break;if(!b.draw.length){if(!b.discard.length)break;b.draw=this.shuffle(b.discard);b.discard=[];this.emit('shuffle','player',0);this.log('捨て札をシャッフルして山札に戻した。');}b.hand.push(b.draw.pop());}}
     startTurn() {
-      const b=this.s.battle;b.turn++;this.s.stats.turns++;b.firstBlock=true;b.played=0;b.attacksPlayed=0;
+      const b=this.s.battle;b.turn++;this.s.stats.turns++;b.firstBlock=true;b.played=0;b.attacksPlayed=0;b.skillsPlayed=0;b.relicUsed={};for(const enemy of b.enemies){enemy.interrupt=0;if(enemy.id==='bossRose')enemy.petals=3;}
       if(this.s.hero==='ranger')b.p.combo=0;
       if(b.p.heatTurn||this.has('dragonscale'))b.p.heat=(b.p.heat||0)+(b.p.heatTurn||0)+(this.has('dragonscale')?1:0);
       if(!b.p.preserveBlock)b.block=0;
@@ -96,14 +103,17 @@
       if(b.p.poisonTurn)for(const e of b.enemies)if(e.hp>0)e.poison+=b.p.poisonTurn;
       this.drawCards(5+(this.has('feather')?1:0)+(b.p.drawTurn||0)+(b.turn===1&&this.has('moonstone')?1:0));
     }
-    needsTarget(instance) {const e=D.getCard(instance)?.effects||{};return !e.aoe&&!!(e.damage||e.poison||e.frost||e.weak||e.vulnerable||e.poisonMultiply);}
+    needsTarget(instance) {const e=D.getCard(instance)?.effects||{};return !this.allTargets(instance)&&!!(e.damage||e.poison||e.frost||e.weak||e.vulnerable||e.poisonMultiply);}
     damageFor(instance,enemy) {const c=D.getCard(instance),e=c.effects,b=this.s.battle,p=b.p;let n=(e.damage||0)+(p.strength||0)+(p.bloom||0)+(p.heat||0)+(e.heatScale||0)*(p.heat||0)+(e.comboScale||0)*(b.played||0)+(e.bloomScale||0)*(p.bloom||0)+(e.frostScale||0)*(enemy?.frost||0)+(e.poisonScale||0)*(enemy?.poison||0);if(p.weak)n*=.75;if(enemy?.vulnerable)n*=1.5;return Math.max(0,Math.floor(n));}
     intent(enemy) {
       const source=D.enemies[enemy.id],a=clone(source.pattern[enemy.turn%source.pattern.length]);
-      if(a.damage){let damage=Math.round(a.damage*DIFFICULTIES[this.s.difficulty].damage)+(enemy.strength||0)-(enemy.frost||0);damage=Math.max(0,damage);if(enemy.weak)damage*=.75;if(this.s.battle.p.vulnerable)damage*=1.5;a.damage=Math.max(0,Math.floor(damage));}return a;
+      if(enemy.id==='bossOwl'&&enemy.turn%3===2){if((enemy.interrupt||0)>=2)return {kind:'stun',label:'詠唱中断'};Object.assign(a,{kind:'attack',damage:32,hits:1});delete a.block;delete a.strength;delete a.status;}
+      if(enemy.id==='bossGriffin'&&enemy.turn%2===1&&(enemy.interrupt||0)>=3)return {kind:'stun',label:'嵐を中断'};
+      if(enemy.id==='bossAurora'&&enemy.turn%2===1&&(enemy.interrupt||0)>=3)a.damage=Math.max(0,a.damage-14);
+      if(a.damage){let damage=Math.round(a.damage*DIFFICULTIES[this.s.difficulty].damage*this.scaling().damage)+(enemy.strength||0)-(enemy.frost||0);damage=Math.max(0,damage);if(enemy.weak)damage*=.75;if(this.s.battle.p.vulnerable)damage*=1.5;a.damage=Math.max(0,Math.floor(damage));}return a;
     }
     enemyDamage(enemy,amount,piercing=false) {
-      if(enemy.hp<=0)return;let blocked=piercing?0:Math.min(enemy.block,amount);enemy.block-=blocked;const dealt=Math.min(enemy.hp,amount-blocked);enemy.hp-=dealt;this.s.stats.damage+=dealt;this.emit(piercing?'poison':'damage',enemy.uid,dealt,blocked?`防御 ${blocked}`:null,{hp:enemy.hp,maxHP:enemy.maxHP,block:enemy.block,blocked});if(enemy.hp<=0)this.emit('defeat',enemy.uid,0);
+      if(enemy.hp<=0)return;const before=amount;if(!piercing){if(enemy.id==='bossRose'&&(enemy.petals??3)>0){amount=Math.floor(amount*.5);enemy.petals=(enemy.petals??3)-1;}if(enemy.id==='bossDragon'&&this.s.battle.enemies.some(e=>e.id==='crystalguard'&&e.hp>0))amount=Math.floor(amount*.5);if(enemy.id==='bossAurora'&&enemy.turn%2===0)amount=Math.max(0,amount-6);}const reduced=before-amount;let blocked=piercing?0:Math.min(enemy.block,amount);enemy.block-=blocked;const dealt=Math.min(enemy.hp,amount-blocked);enemy.hp-=dealt;this.s.stats.damage+=dealt;this.emit(piercing?'poison':'damage',enemy.uid,dealt,blocked?`防御 ${blocked}`:null,{hp:enemy.hp,maxHP:enemy.maxHP,block:enemy.block,blocked,reduced});if(enemy.hp<=0)this.emit('defeat',enemy.uid,0);
       if(enemy.boss&&!enemy.enraged&&enemy.hp>0&&enemy.hp<=enemy.maxHP*.5){enemy.enraged=true;enemy.strength+=2+this.s.act;this.emit('buff',enemy.uid,2+this.s.act,'覚醒');this.log(`${enemy.name}が覚醒！ 筋力が${2+this.s.act}増えた。`);}
     }
     playerDamage(amount,piercing=false,source) {const b=this.s.battle;const blocked=piercing?0:Math.min(b.block,amount);b.block-=blocked;const n=amount-blocked;this.s.hp=Math.max(0,this.s.hp-n);this.emit(n?'damage':'block','player',n||blocked,null,{hp:this.s.hp,maxHP:this.s.maxHP,block:b.block,blocked,source:source?.uid});if(source&&b.p.thorns)this.enemyDamage(source,b.p.thorns,true);}
@@ -112,15 +122,26 @@
       if(c.cost<0)throw new Error('このカードはプレイできません。');if(c.cost>b.energy)throw new Error('エナジーが足りません。');
       const target=b.enemies.find(x=>x.uid===targetUid&&x.hp>0);if(this.needsTarget(instance)&&!target)throw new Error('対象の敵を選んでください。');
       b.energy-=c.cost;b.hand.splice(index,1);this.s.stats.cards++;this.log(`${c.name}を使った。`);
-      const targets=e.aoe?b.enemies.filter(x=>x.hp>0):(target?[target]:[]);
-      this.emit('card','player',c.art,c.name,{cardId:c.id,cardUid:instance.uid,hero:this.s.hero,ultimate:c.ultimate,targets:targets.map(t=>t.uid)});
-      if(e.damage){for(let i=0;i<(e.hits||1);i++)for(const enemy of targets)if(enemy.hp>0)this.enemyDamage(enemy,this.damageFor(instance,enemy));if(!b.attacksPlayed&&this.has('wolfcharm')){b.block+=3;this.emit('block','player',3);}b.attacksPlayed++;if(b.p.heat)b.p.heat=Math.max(0,b.p.heat-1);}
+      const all=this.allTargets(instance);const targets=all?b.enemies.filter(x=>x.hp>0):(target?[target]:[]);
+      this.emit('card','player',c.art,c.name,{cardId:c.id,cardUid:instance.uid,hero:this.s.hero,ultimate:c.ultimate,branch:instance.branch,upgraded:instance.upgraded,targets:targets.map(t=>t.uid)});
+      if(e.damage){
+        if(!b.attacksPlayed&&all&&!e.aoe){if(this.has('petalseal')&&(b.p.bloom||0)>=5)this.triggerRelic('petalseal');if(this.has('sunemblem')&&(b.p.heat||0)>=6)this.triggerRelic('sunemblem');}
+        let hits=e.hits||1;if(this.has('moonpin')&&b.played>=2&&!b.relicUsed?.moonpin){hits++;this.triggerRelic('moonpin');}
+        for(let i=0;i<hits;i++)for(const enemy of targets)if(enemy.hp>0){this.enemyDamage(enemy,this.damageFor(instance,enemy));if(enemy.id==='bossGriffin'&&enemy.turn%2===1)enemy.interrupt=(enemy.interrupt||0)+1;}
+        if(!b.attacksPlayed&&this.has('wolfcharm')){b.block+=3;this.emit('block','player',3);}for(const enemy of b.enemies)if(enemy.id==='bossAurora')enemy.interrupt=(enemy.interrupt||0)+1;
+        if(e.consumeHeat)b.p.heat=0;else if(!b.attacksPlayed&&this.has('embercore')&&b.p.heat)this.triggerRelic('embercore');else if(b.p.heat)b.p.heat=Math.max(0,b.p.heat-1);b.attacksPlayed++;
+      }
+      if(c.type==='skill'){b.skillsPlayed=(b.skillsPlayed||0)+1;for(const enemy of b.enemies)if(enemy.id==='bossOwl'&&enemy.turn%3===2)enemy.interrupt=(enemy.interrupt||0)+1;}
+      const poisonBonus=e.poison&&this.has('amberflask')&&!b.relicUsed?.amberflask?2:0;if(poisonBonus&&targets.some(t=>t.hp>0))this.triggerRelic('amberflask');
       if(e.block){let n=e.block+(b.p.dexterity||0)+(e.bloomBlock||0)*(b.p.bloom||0)+(e.comboBlock||0)*b.played;if(b.firstBlock&&this.has('clover'))n+=3;b.firstBlock=false;b.block+=n;this.emit('block','player',n);}
-      for(const enemy of targets)if(enemy.hp>0){for(const key of ['poison','frost','weak','vulnerable'])if(e[key]){enemy[key]+=e[key];this.emit('status',enemy.uid,e[key],D.statusLabels[key][0]);}if(e.poisonMultiply){enemy.poison*=e.poisonMultiply;this.emit('status',enemy.uid,enemy.poison,'毒');}}
+      for(const enemy of targets)if(enemy.hp>0){for(const key of ['poison','frost','weak','vulnerable'])if(e[key]){const amount=e[key]+(key==='poison'?poisonBonus:0);enemy[key]+=amount;this.emit('status',enemy.uid,amount,D.statusLabels[key][0]);}if(e.poisonMultiply){enemy.poison*=e.poisonMultiply;this.emit('status',enemy.uid,enemy.poison,'毒');}}
       for(const key of ['bloom','strength','dexterity','thorns','regen','bloomTurn','drawTurn','energyTurn','blockTurn','poisonTurn','heat','heatTurn'])if(e[key]){b.p[key]=(b.p[key]||0)+e[key];this.emit('buff','player',e[key],D.statusLabels[key][0]);}
+      if(e.bloom&&this.has('rosegrail')){b.block+=e.bloom*2;this.triggerRelic('rosegrail');this.emit('block','player',e.bloom*2);}
+      if(e.frost&&targets.some(t=>t.hp>0)&&this.has('frostbell')){b.block+=3;this.triggerRelic('frostbell');this.emit('block','player',3);}
+      if(c.type==='skill'&&b.skillsPlayed===1&&this.has('moonquill')){this.drawCards(1);this.triggerRelic('moonquill');}
       if(e.preserveBlock)b.p.preserveBlock=true;if(e.energy)b.energy+=e.energy;if(e.heal)this.heal(e.heal);
       if(e.draw)this.drawCards(e.draw);
-      b.played++;if(this.s.hero==='ranger')b.p.combo=b.played;
+      b.played++;if(this.has('silvermetronome')&&b.played%3===0){b.energy++;this.drawCards(1);this.triggerRelic('silvermetronome');}if(this.s.hero==='ranger')b.p.combo=b.played;
       if(e.exhaust||c.type==='power')b.exhaust.push(instance);else b.discard.push(instance);
       this.checkEnd();return c;
     }
@@ -128,6 +149,7 @@
       this.expect('battle');const b=this.s.battle;
       for(const c of b.hand){if(c.id==='curse')this.playerDamage(2,true);if(D.getCard(c).effects.ethereal)b.exhaust.push(c);else b.discard.push(c);}b.hand=[];
       if(this.s.hp<=0){this.checkEnd();return;}
+      if(this.has('rootretort')&&b.enemies.some(e=>e.hp>0&&e.poison)){b.block+=4;this.triggerRelic('rootretort');this.emit('block','player',4);}
       if(b.p.regen){this.heal(b.p.regen);b.p.regen--;}
       const oldWeak=b.p.weak||0,oldVulnerable=b.p.vulnerable||0;
       for(const enemy of b.enemies){
@@ -152,7 +174,8 @@
       if(this.has('ribbon'))this.heal(4);if(this.has('honey'))this.heal(5);
       const gold=Math.round((kind==='boss'?95:kind==='elite'?45:22+Math.floor(this.random()*12))*(this.has('compass')?1.5:1)*DIFFICULTIES[this.s.difficulty].gold);this.s.gold+=gold;
       this.s.reward={gold,cards:this.rollCards(3,kind!=='battle'),relic:kind==='elite'?this.rollRelics(1)[0]:null,potion:this.random()<.33?this.pick(Object.keys(D.potions)):null,cardClaimed:false,potionClaimed:false,relicClaimed:false,boss:kind==='boss'};
-      if(kind==='boss'&&this.s.act===2){this.s.screen='result';this.s.won=true;this.s.endedAt=Date.now();}else this.s.screen='reward';this.emit('victory','player',gold);
+      if(kind==='boss')this.s.clearedStages=Math.max(this.s.clearedStages||0,this.s.act+1);
+      if(kind==='boss'&&this.s.act===4&&this.s.mode!=='ascent'){this.s.screen='result';this.s.won=true;this.s.endedAt=Date.now();}else this.s.screen='reward';this.emit('victory','player',gold);
     }
     selectReward(uid) {this.expect('reward');const r=this.s.reward;if(r.cardClaimed)throw new Error('カードは受け取り済みです。');const c=r.cards.find(c=>c.uid===Number(uid));if(!c)throw new Error('報酬を選んでください。');this.addCard(c.id,c.upgraded);r.cardClaimed=true;r.chosen=c.uid;}
     claimRelic() {this.expect('reward');const r=this.s.reward;if(!r.relic||r.relicClaimed)return;this.addRelic(r.relic);r.relicClaimed=true;}
@@ -161,7 +184,7 @@
     chooseBossRelic(id) {this.expect('bossReward');if(id&&!this.s.room.relics.includes(id))throw new Error('レリックを選んでください。');if(id)this.addRelic(id);this.heal(Math.round(this.s.maxHP*.4));this.s.act++;this.s.row=-1;this.s.lane=1;this.s.map=this.makeMap();this.finishRoom();}
     finishRoom() {this.s.screen='map';this.s.battle=null;this.s.reward=null;this.s.room=null;}
     rest() {this.expect('rest');const heal=this.heal(Math.round(this.s.maxHP*(.3+(this.has('teacup')?.15:0))));this.finishRoom();return heal;}
-    upgradeCard(uid) {if(!['rest','event'].includes(this.s.screen))throw new Error('ここでは強化できません。');const c=this.s.deck.find(c=>c.uid===Number(uid));if(!c||c.upgraded||['curse','status'].includes(D.cards[c.id].type))throw new Error('強化できるカードを選んでください。');c.upgraded=true;if(this.s.screen==='rest')this.finishRoom();return c;}
+    upgradeCard(uid,branch){if(!['rest','event'].includes(this.s.screen))throw new Error('ここでは強化できません。');const c=this.s.deck.find(c=>c.uid===Number(uid));if(!c||D.upgradeLevel(c)>=2||['curse','status'].includes(D.cards[c.id].type))throw new Error('このカードは強化できません。');if(c.upgraded){if(!['power','technique'].includes(branch))throw new Error('進化の分岐を選んでください。');c.branch=branch;}else{if(branch)throw new Error('まず＋に強化してください。');c.upgraded=true;}if(this.s.screen==='rest')this.finishRoom();return c;}
     collectTreasure() {this.expect('treasure');this.addRelic(this.s.room.relic);this.s.gold+=this.s.room.gold;this.finishRoom();}
     makeShop() {this.s.room={cards:this.rollCards(5).map((c,i)=>({...c,price:i===0?38:D.cards[c.id].rarity==='rare'?118:D.cards[c.id].rarity==='uncommon'?78:52,sold:false})),relics:this.rollRelics(2).map(id=>({id,price:145,sold:false})),potions:this.shuffle(Object.keys(D.potions)).slice(0,2).map(id=>({id,price:38,sold:false})),removed:false};}
     buy(kind,index) {this.expect('shop');if(!['cards','relics','potions'].includes(kind))throw new Error('商品が見つかりません。');const item=this.s.room[kind][Number(index)];if(!item||item.sold)throw new Error('その商品は売り切れです。');if(this.s.gold<item.price)throw new Error('ゴールドが足りません。');if(kind==='potions'&&this.s.potions.length>=3)throw new Error('ポーションの枠がいっぱいです。');this.s.gold-=item.price;item.sold=true;if(kind==='cards')this.addCard(item.id,item.upgraded);if(kind==='relics')this.addRelic(item.id);if(kind==='potions')this.s.potions.push(item.id);return item;}
@@ -191,6 +214,11 @@
     usePotion(index) {if(!this.s||['result','bossReward'].includes(this.s.screen))throw new Error('ここでは使えません。');index=Number(index);const id=this.s.potions[index];if(!id)throw new Error('ポーションがありません。');if(id!=='heal')this.expect('battle');if(id==='heal'&&this.s.hp>=this.s.maxHP)throw new Error('HPは満タンです。');this.s.potions.splice(index,1);
       if(id==='heal')this.heal(20+(this.has('vial')?8:0));if(id==='energy')this.s.battle.energy+=2;if(id==='shield'){this.s.battle.block+=15;this.emit('block','player',15);}if(id==='fire'){for(const e of this.s.battle.enemies)this.enemyDamage(e,20);this.checkEnd();}return id;
     }
+    bossMechanic(enemy){const guards=this.s.battle.enemies.filter(e=>e.id==='crystalguard'&&e.hp>0).length,table={bossRose:['花弁結界',`残り ${enemy.petals??3} / 3枚`,'毎ターン、最初の3ヒットを半減。連撃で結界を割ろう。毒は結界を無視する。'],bossOwl:['月の詠唱',enemy.turn%3===2?`スキル ${Math.min(2,enemy.interrupt||0)} / 2`:`詠唱まで ${2-enemy.turn%3}ターン`,'3ターンごとに大魔法。詠唱ターン中にスキル2枚で中断する。'],bossDragon:['星の護衛',`護衛 ${guards}体`,'護衛がいる間、本体への直接ダメージを半減。先に星晶を倒そう。'],bossGriffin:['嵐の溜め',enemy.turn%2===1?`攻撃ヒット ${Math.min(3,enemy.interrupt||0)} / 3`:'次ターンに溜め','溜め中に本体へ3ヒットを当てると大技を中断。連撃が有効。'],bossAurora:[enemy.turn%2===0?'日輪の守り':'月輪の試練',enemy.turn%2===0?'各ヒット −6':`アタック ${Math.min(3,enemy.interrupt||0)} / 3`,'日輪は直接ダメージを1ヒットごとに6軽減。月輪はアタック3枚で次の大技の基礎威力が14下がる。']};const t=table[enemy.id];return t?{name:t[0],progress:t[1],description:t[2]}:null;}
+    previewCard(uid,targetUid){this.expect('battle');const instance=this.s.battle.hand.find(c=>c.uid===Number(uid));if(!instance)return null;const simulated=new Engine(this.serialize()),before=clone(this.s.battle),hp=this.s.hp;try{simulated.play(uid,targetUid);}catch(error){return {error:error.message};}const after=simulated.s.battle,events=simulated.fx;return {name:D.getCard(instance,this.s.hero).name,block:after.block-before.block,heal:Math.max(0,simulated.s.hp-hp),energy:after.energy-before.energy,enemies:before.enemies.filter(e=>e.hp>0).map(e=>{const a=after.enemies.find(x=>x.uid===e.uid),hits=events.filter(x=>x.target===e.uid&&x.type==='damage');return {uid:e.uid,name:e.name,hp:a.hp,maxHP:a.maxHP,damage:e.hp-a.hp,blocked:hits.reduce((n,x)=>n+(x.blocked||0),0),reduced:hits.reduce((n,x)=>n+(x.reduced||0),0),hits:hits.map(x=>x.value),poison:a.poison-e.poison,frost:a.frost-e.frost,intent:simulated.intent(a)};}),relics:events.filter(e=>e.type==='relic').map(e=>e.label)};}
+    damageBreakdown(uid,enemy){const c=this.s.battle.hand.find(c=>c.uid===Number(uid));if(!c)return [];const e=D.getCard(c).effects,p=this.s.battle.p;if(!e.damage)return [];const parts=[['基礎',e.damage],['筋力',p.strength||0],['開花',p.bloom||0],['灼熱',p.heat||0],['灼熱倍率',(e.heatScale||0)*(p.heat||0)],['連携',(e.comboScale||0)*this.s.battle.played],['開花倍率',(e.bloomScale||0)*(p.bloom||0)],['氷結倍率',(e.frostScale||0)*(enemy?.frost||0)],['毒倍率',(e.poisonScale||0)*(enemy?.poison||0)]].filter(x=>x[1]);if(p.weak)parts.push(['脱力','×0.75']);if(enemy?.vulnerable)parts.push(['無防備','×1.5']);return parts;}
+    retire(){this.expect('bossReward');if(this.s.mode!=='ascent')throw new Error('踏破モードで使えます。');this.s.screen='result';this.s.retired=true;this.s.won=false;this.s.endedAt=Date.now();}
+
     discardPotion(index) {index=Number(index);if(!this.s.potions[index])return;this.s.potions.splice(index,1);}
   }
   Engine.DIFFICULTIES=DIFFICULTIES;

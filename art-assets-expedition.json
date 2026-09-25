@@ -1,0 +1,715 @@
+{
+  "recovery": true,
+  "generation_mode": "built-in imagegen",
+  "assets": [
+    {
+      "name": "costumes.png",
+      "path": "/workspace/scratch/fdfefa9e209c/update-v1-2/art/costumes.png",
+      "source_path": "/workspace/scratch/fdfefa9e209c/generated_images/exec-533e73a0-b817-4425-b967-dc74e6245377.png",
+      "width": 1983,
+      "height": 793,
+      "mode": "RGBA",
+      "sha256": "18b18ff4c273a0d3bb595f1f1f2791da676d9f70ba45d4049b980bd97da46043",
+      "unchanged_copy_verified": true,
+      "alpha": {
+        "extrema": [
+          0,
+          255
+        ],
+        "transparent_pixels": 489191,
+        "alpha_bbox": [
+          0,
+          0,
+          1968,
+          793
+        ]
+      },
+      "grid": {
+        "columns": 5,
+        "rows": 2,
+        "order": [
+          [
+            "Lily star",
+            "Luna star",
+            "Miel star",
+            "Flare star",
+            "Noel star"
+          ],
+          [
+            "Lily dawn",
+            "Luna dawn",
+            "Miel dawn",
+            "Flare dawn",
+            "Noel dawn"
+          ]
+        ],
+        "nominal_cell_width": 396.6,
+        "nominal_cell_height": 396.5
+      },
+      "main_alpha_components_threshold24": [
+        {
+          "pixels": 81078,
+          "bbox": [
+            24,
+            7,
+            397,
+            391
+          ]
+        },
+        {
+          "pixels": 93401,
+          "bbox": [
+            1179,
+            12,
+            1573,
+            396
+          ]
+        },
+        {
+          "pixels": 112560,
+          "bbox": [
+            403,
+            15,
+            831,
+            393
+          ]
+        },
+        {
+          "pixels": 75181,
+          "bbox": [
+            853,
+            17,
+            1155,
+            392
+          ]
+        },
+        {
+          "pixels": 95617,
+          "bbox": [
+            1573,
+            17,
+            1958,
+            396
+          ]
+        },
+        {
+          "pixels": 90770,
+          "bbox": [
+            15,
+            388,
+            404,
+            782
+          ]
+        },
+        {
+          "pixels": 80972,
+          "bbox": [
+            835,
+            394,
+            1156,
+            783
+          ]
+        },
+        {
+          "pixels": 117444,
+          "bbox": [
+            402,
+            396,
+            829,
+            785
+          ]
+        },
+        {
+          "pixels": 106783,
+          "bbox": [
+            1157,
+            402,
+            1572,
+            785
+          ]
+        },
+        {
+          "pixels": 95797,
+          "bbox": [
+            1578,
+            404,
+            1959,
+            786
+          ]
+        }
+      ],
+      "notes": [
+        "Genuine alpha verified; generated PNG unchanged.",
+        "Despite explicit margin instructions, silhouettes touch outer edges and can cross nominal equal cells. Use individual source regions/alpha bounds for integration.",
+        "Component boxes are read-only alpha analysis and may omit detached fine details.",
+        "Suggested source bounds include six-pixel padding around the main alpha component; inspect tiny detached sparkles when choosing final display windows. No image pixels were cropped or altered."
+      ],
+      "sprites": [
+        {
+          "name": "Lily star",
+          "row": 0,
+          "column": 0,
+          "mainAlphaBoundsPx": [
+            24,
+            7,
+            397,
+            391
+          ],
+          "suggestedSourceBoundsPx": [
+            18,
+            1,
+            403,
+            397
+          ],
+          "sourceBoundsNormalized": [
+            0.009077155824508321,
+            0.0012610340479192938,
+            0.2032274331820474,
+            0.5006305170239597
+          ]
+        },
+        {
+          "name": "Luna star",
+          "row": 0,
+          "column": 1,
+          "mainAlphaBoundsPx": [
+            403,
+            15,
+            831,
+            393
+          ],
+          "suggestedSourceBoundsPx": [
+            397,
+            9,
+            837,
+            399
+          ],
+          "sourceBoundsNormalized": [
+            0.20020171457387798,
+            0.011349306431273645,
+            0.42208774583963693,
+            0.5031525851197982
+          ]
+        },
+        {
+          "name": "Miel star",
+          "row": 0,
+          "column": 2,
+          "mainAlphaBoundsPx": [
+            853,
+            17,
+            1155,
+            392
+          ],
+          "suggestedSourceBoundsPx": [
+            847,
+            11,
+            1161,
+            398
+          ],
+          "sourceBoundsNormalized": [
+            0.427130610186586,
+            0.013871374527112233,
+            0.5854765506807866,
+            0.501891551071879
+          ]
+        },
+        {
+          "name": "Flare star",
+          "row": 0,
+          "column": 3,
+          "mainAlphaBoundsPx": [
+            1179,
+            12,
+            1573,
+            396
+          ],
+          "suggestedSourceBoundsPx": [
+            1173,
+            6,
+            1579,
+            402
+          ],
+          "sourceBoundsNormalized": [
+            0.5915279878971256,
+            0.007566204287515763,
+            0.7962682803832577,
+            0.5069356872635561
+          ]
+        },
+        {
+          "name": "Noel star",
+          "row": 0,
+          "column": 4,
+          "mainAlphaBoundsPx": [
+            1573,
+            17,
+            1958,
+            396
+          ],
+          "suggestedSourceBoundsPx": [
+            1567,
+            11,
+            1964,
+            402
+          ],
+          "sourceBoundsNormalized": [
+            0.7902168431669188,
+            0.013871374527112233,
+            0.9904185577407968,
+            0.5069356872635561
+          ]
+        },
+        {
+          "name": "Lily dawn",
+          "row": 1,
+          "column": 0,
+          "mainAlphaBoundsPx": [
+            15,
+            388,
+            404,
+            782
+          ],
+          "suggestedSourceBoundsPx": [
+            9,
+            382,
+            410,
+            788
+          ],
+          "sourceBoundsNormalized": [
+            0.0045385779122541605,
+            0.4817150063051702,
+            0.20675743822491174,
+            0.9936948297604036
+          ]
+        },
+        {
+          "name": "Luna dawn",
+          "row": 1,
+          "column": 1,
+          "mainAlphaBoundsPx": [
+            402,
+            396,
+            829,
+            785
+          ],
+          "suggestedSourceBoundsPx": [
+            396,
+            390,
+            835,
+            791
+          ],
+          "sourceBoundsNormalized": [
+            0.19969742813918306,
+            0.4918032786885246,
+            0.4210791729702471,
+            0.9974779319041615
+          ]
+        },
+        {
+          "name": "Miel dawn",
+          "row": 1,
+          "column": 2,
+          "mainAlphaBoundsPx": [
+            835,
+            394,
+            1156,
+            783
+          ],
+          "suggestedSourceBoundsPx": [
+            829,
+            388,
+            1162,
+            789
+          ],
+          "sourceBoundsNormalized": [
+            0.41805345436207764,
+            0.489281210592686,
+            0.5859808371154815,
+            0.9949558638083228
+          ]
+        },
+        {
+          "name": "Flare dawn",
+          "row": 1,
+          "column": 3,
+          "mainAlphaBoundsPx": [
+            1157,
+            402,
+            1572,
+            785
+          ],
+          "suggestedSourceBoundsPx": [
+            1151,
+            396,
+            1578,
+            791
+          ],
+          "sourceBoundsNormalized": [
+            0.5804336863338376,
+            0.49936948297604034,
+            0.7957639939485628,
+            0.9974779319041615
+          ]
+        },
+        {
+          "name": "Noel dawn",
+          "row": 1,
+          "column": 4,
+          "mainAlphaBoundsPx": [
+            1578,
+            404,
+            1959,
+            786
+          ],
+          "suggestedSourceBoundsPx": [
+            1572,
+            398,
+            1965,
+            792
+          ],
+          "sourceBoundsNormalized": [
+            0.7927382753403933,
+            0.501891551071879,
+            0.9909228441754917,
+            0.9987389659520807
+          ]
+        }
+      ]
+    },
+    {
+      "name": "expedition-enemies.png",
+      "path": "/workspace/scratch/fdfefa9e209c/update-v1-2/art/expedition-enemies.png",
+      "source_path": "/workspace/scratch/fdfefa9e209c/generated_images/exec-879916f6-e5e5-454f-bcc4-76c56476901e.png",
+      "width": 1774,
+      "height": 887,
+      "mode": "RGBA",
+      "sha256": "a0f4954e75312f4c3bf06e739ebf55b18f919c44947acbd433ffea7ee880223e",
+      "unchanged_copy_verified": true,
+      "alpha": {
+        "extrema": [
+          0,
+          255
+        ],
+        "transparent_pixels": 541034,
+        "alpha_bbox": [
+          0,
+          0,
+          1773,
+          887
+        ]
+      },
+      "grid": {
+        "columns": 4,
+        "rows": 2,
+        "order": [
+          [
+            "storm griffin",
+            "star dragon",
+            "blue crystal sentinel",
+            "sun seed sentinel"
+          ],
+          [
+            "cloud fox",
+            "brass owlet",
+            "comet sprite",
+            "zodiac knight"
+          ]
+        ],
+        "nominal_cell_width": 443.5,
+        "nominal_cell_height": 443.5
+      },
+      "main_alpha_components_threshold24": [
+        {
+          "pixels": 138529,
+          "bbox": [
+            23,
+            8,
+            455,
+            465
+          ]
+        },
+        {
+          "pixels": 151752,
+          "bbox": [
+            482,
+            9,
+            950,
+            468
+          ]
+        },
+        {
+          "pixels": 49323,
+          "bbox": [
+            977,
+            20,
+            1271,
+            430
+          ]
+        },
+        {
+          "pixels": 85767,
+          "bbox": [
+            1336,
+            20,
+            1747,
+            449
+          ]
+        },
+        {
+          "pixels": 119122,
+          "bbox": [
+            1341,
+            458,
+            1759,
+            877
+          ]
+        },
+        {
+          "pixels": 93978,
+          "bbox": [
+            503,
+            494,
+            888,
+            868
+          ]
+        },
+        {
+          "pixels": 73147,
+          "bbox": [
+            914,
+            523,
+            1294,
+            855
+          ]
+        },
+        {
+          "pixels": 108638,
+          "bbox": [
+            24,
+            529,
+            462,
+            857
+          ]
+        }
+      ],
+      "notes": [
+        "Genuine alpha verified; generated PNG unchanged.",
+        "Despite explicit margin instructions, silhouettes touch outer edges and can cross nominal equal cells. Use individual source regions/alpha bounds for integration.",
+        "Component boxes are read-only alpha analysis and may omit detached fine details.",
+        "Suggested source bounds include six-pixel padding around the main alpha component; inspect tiny detached sparkles when choosing final display windows. No image pixels were cropped or altered."
+      ],
+      "sprites": [
+        {
+          "name": "storm griffin",
+          "row": 0,
+          "column": 0,
+          "mainAlphaBoundsPx": [
+            23,
+            8,
+            455,
+            465
+          ],
+          "suggestedSourceBoundsPx": [
+            17,
+            2,
+            461,
+            471
+          ],
+          "sourceBoundsNormalized": [
+            0.009582863585118376,
+            0.002254791431792559,
+            0.25986471251409243,
+            0.5310033821871477
+          ]
+        },
+        {
+          "name": "star dragon",
+          "row": 0,
+          "column": 1,
+          "mainAlphaBoundsPx": [
+            482,
+            9,
+            950,
+            468
+          ],
+          "suggestedSourceBoundsPx": [
+            476,
+            3,
+            956,
+            474
+          ],
+          "sourceBoundsNormalized": [
+            0.26832018038331457,
+            0.0033821871476888386,
+            0.5388951521984217,
+            0.5343855693348365
+          ]
+        },
+        {
+          "name": "blue crystal sentinel",
+          "row": 0,
+          "column": 2,
+          "mainAlphaBoundsPx": [
+            977,
+            20,
+            1271,
+            430
+          ],
+          "suggestedSourceBoundsPx": [
+            971,
+            14,
+            1277,
+            436
+          ],
+          "sourceBoundsNormalized": [
+            0.5473506200676438,
+            0.015783540022547914,
+            0.7198421645997746,
+            0.4915445321307779
+          ]
+        },
+        {
+          "name": "sun seed sentinel",
+          "row": 0,
+          "column": 3,
+          "mainAlphaBoundsPx": [
+            1336,
+            20,
+            1747,
+            449
+          ],
+          "suggestedSourceBoundsPx": [
+            1330,
+            14,
+            1753,
+            455
+          ],
+          "sourceBoundsNormalized": [
+            0.7497181510710259,
+            0.015783540022547914,
+            0.9881623449830891,
+            0.5129650507328072
+          ]
+        },
+        {
+          "name": "cloud fox",
+          "row": 1,
+          "column": 0,
+          "mainAlphaBoundsPx": [
+            24,
+            529,
+            462,
+            857
+          ],
+          "suggestedSourceBoundsPx": [
+            18,
+            523,
+            468,
+            863
+          ],
+          "sourceBoundsNormalized": [
+            0.010146561443066516,
+            0.5896279594137542,
+            0.2638105975197294,
+            0.9729425028184893
+          ]
+        },
+        {
+          "name": "brass owlet",
+          "row": 1,
+          "column": 1,
+          "mainAlphaBoundsPx": [
+            503,
+            494,
+            888,
+            868
+          ],
+          "suggestedSourceBoundsPx": [
+            497,
+            488,
+            894,
+            874
+          ],
+          "sourceBoundsNormalized": [
+            0.2801578354002255,
+            0.5501691093573844,
+            0.503945885005637,
+            0.9853438556933484
+          ]
+        },
+        {
+          "name": "comet sprite",
+          "row": 1,
+          "column": 2,
+          "mainAlphaBoundsPx": [
+            914,
+            523,
+            1294,
+            855
+          ],
+          "suggestedSourceBoundsPx": [
+            908,
+            517,
+            1300,
+            861
+          ],
+          "sourceBoundsNormalized": [
+            0.5118376550169109,
+            0.5828635851183765,
+            0.7328072153325818,
+            0.9706877113866967
+          ]
+        },
+        {
+          "name": "zodiac knight",
+          "row": 1,
+          "column": 3,
+          "mainAlphaBoundsPx": [
+            1341,
+            458,
+            1759,
+            877
+          ],
+          "suggestedSourceBoundsPx": [
+            1335,
+            452,
+            1765,
+            883
+          ],
+          "sourceBoundsNormalized": [
+            0.7525366403607666,
+            0.5095828635851184,
+            0.9949267192784668,
+            0.9954904171364148
+          ]
+        }
+      ]
+    },
+    {
+      "name": "expedition-worlds.png",
+      "path": "/workspace/scratch/fdfefa9e209c/update-v1-2/art/expedition-worlds.png",
+      "source_path": "/workspace/scratch/fdfefa9e209c/generated_images/exec-d1f8b481-9248-4075-aac6-f3f3f5916daa.png",
+      "width": 2048,
+      "height": 768,
+      "mode": "RGB",
+      "sha256": "31bbc355da0a1c955273369f6e8ba852e6bbf037f9997a0ddd9252040b54c415",
+      "unchanged_copy_verified": true,
+      "grid": {
+        "columns": 2,
+        "rows": 1,
+        "order": [
+          [
+            "Aurora citadel",
+            "Sunheart sanctuary"
+          ]
+        ],
+        "nominal_cell_width": 1024.0,
+        "nominal_cell_height": 768.0
+      },
+      "notes": [
+        "Two equal halves, each1024x768. Natural output differs from requested16:9 panels. Clear lower-center fighting floors."
+      ]
+    }
+  ]
+}
