@@ -189,10 +189,10 @@
   const basicNames={knight:{strike:'花びらの一閃',guard:'花結びの盾'},witch:{strike:'星弾のひと振り',guard:'月光の結界'},alchemist:{strike:'はじける小瓶',guard:'薬草の護り'},dragoon:{strike:'竜槍の突き',guard:'竜鱗の盾'},ranger:{strike:'銀月の双牙',guard:'影の構え'}};
   function getCard(instance,hero){
     const base=cards[typeof instance==='string'?instance:instance.id];if(!base)return null;
-    const up=!!instance.upgraded,effects={...base.effects,...(up?base.upgrade:{})},cost=effects.cost??base.cost;delete effects.cost;
+    const up=!!instance.upgraded,branch=up&&['power','technique'].includes(instance.branch)?instance.branch:null;const branches=data.branches?.(base.id,hero||instance.visualHero);const effects={...base.effects,...(up?base.upgrade:{}),...(branch?branches[branch].effects:{})},cost=effects.cost??base.cost;delete effects.cost;
     const visualHero=hero||instance.visualHero;
     const name=basicNames[visualHero]?.[base.id]||base.name;
-    return {...base,effects,cost,upgraded:up,visualHero,name:name+(up?'＋':'')};
+    return {...base,effects,cost,upgraded:up,branch,branchName:branch?branches[branch].name:null,visualHero,name:name+(branch?'＋＋':up?'＋':'')};
   }
 
   function describe(instance){const c=getCard(instance);const e=c.effects;const t=[];
@@ -218,7 +218,7 @@
     if(e.drawTurn)t.push(`毎ターン、追加で${e.drawTurn}枚引く。`);
     if(e.preserveBlock)t.push('ターン開始時にブロックを保持。');
     if(c.type==='curse'||c.type==='status')t.push(c.note);
-    if(e.exhaust)t.push('廃棄。');return t.join(' ');
+    if(e.consumeHeat)t.push('攻撃後、灼熱をすべて消費。');if(e.exhaust)t.push('廃棄。');return t.join(' ');
   }
   statusLabels.heat=['灼熱','攻撃の各ヒットに数値分のダメージを加える。アタックを使うと1減る。'];
   statusLabels.heatTurn=['竜の灯火','毎ターン、灼熱を得る。'];
