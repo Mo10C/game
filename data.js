@@ -195,7 +195,7 @@
     return {...base,effects,cost,upgraded:up,branch,branchName:branch?branches[branch].name:null,visualHero,name:name+(branch?'＋＋':up?'＋':'')};
   }
 
-  function describe(instance){const c=getCard(instance);const e=c.effects;const t=[];
+  function describe(instance,hero){const c=getCard(instance,hero);const e=c.effects;const t=[];
     if(e.damage)t.push(`${e.aoe?'敵全体に':''}${e.damage}${e.hits?`×${e.hits}`:''}ダメージ。`);
     if(e.bloomScale)t.push(`開花1につき＋${e.bloomScale}ダメージ。`);
     if(e.frostScale)t.push(`敵の氷結1につき＋${e.frostScale}ダメージ。`);

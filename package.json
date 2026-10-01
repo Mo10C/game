@@ -1,6 +1,6 @@
 {
   "name": "bloom-spire",
-  "version": "1.2.0",
+  "version": "1.2.2",
   "private": true,
   "description": "Bloom Spire — 花灯りの塔 / Static deckbuilding roguelike",
   "scripts": {

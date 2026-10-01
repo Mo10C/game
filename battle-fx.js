@@ -119,6 +119,7 @@
       return center;
     }
     async ordinary(card,targets){
+      if(!API.targetsEnemies(card))targets=[];
       const from=this.point('player'),attack=!!card.effects.damage;
       this.animate(from.node?.querySelector('.combat-sprite'),attack?[{transform:'translateX(0)'},{transform:'translateX(-14px) rotate(-6deg)',offset:.25},{transform:'translateX(55px) rotate(7deg)',offset:.55},{transform:'translateX(0)'}]:[{transform:'translateY(0)'},{transform:'translateY(-16px)'},{transform:'translateY(0)'}],480,'cubic-bezier(.2,.8,.3,1)');
       this.sound('whoosh');
@@ -127,9 +128,10 @@
       else {this.ring(from,card.effects.block?'#a8dcff':this.color[0],100,650);await this.wait(150);}
     }
     async evolutionPrelude(card,targets){if(!this.motion||this.cancelled)return;const from=this.point('player'),banner=document.createElement('div');banner.className='evolution-banner branch-'+card.branch;banner.innerHTML=`<span>✦ ${card.branch==='power'?'POWER':'TECHNIQUE'} EVOLUTION</span><b>${esc(card.name)} <i>— ${card.branchName}</i></b>`;this.root.appendChild(banner);for(let i=0;i<3;i++)this.ring(from,this.color[i],80+i*42,800,i*100);this.burst(from,36,this.color[1],card.branch==='power'?'spark':'crystal',1.2);this.sound('chime');await this.wait(card.ultimate?400:230);}
-    evolvedImpact(card,targets){const points=targets.length?targets.map(id=>this.point(id)):[this.point('player')],from=this.point('player');for(const p of points){if(card.branch==='power'){this.beam(from,p,this.color[1],card.ultimate?42:22,700);for(let i=0;i<3;i++)this.ring(p,this.color[i],110+i*44,800,i*90);this.burst(p,card.ultimate?90:45,this.color[0],this.options.hero==='knight'?'petal':'spark',1.65);}else{for(let i=0;i<5;i++){this.slash(p,-1.2+i*.55,this.color[i%3],.75+i*.13,i*85);this.ring(p,this.color[i%3],60+i*23,700,i*70);}this.burst(p,card.ultimate?70:35,this.color[1],this.options.hero==='alchemist'?'mote':'crystal',1.3);}}}
+    evolvedImpact(card,targets){if(!API.targetsEnemies(card)){const p=this.point('player');for(let i=0;i<4;i++)this.ring(p,card.effects.block?'#a8dcff':this.color[i%3],75+i*30,800,i*85);this.burst(p,35,this.color[1],'mote',.6);return;}const points=targets.length?targets.map(id=>this.point(id)):[this.point('player')],from=this.point('player');for(const p of points){if(card.branch==='power'){this.beam(from,p,this.color[1],card.ultimate?42:22,700);for(let i=0;i<3;i++)this.ring(p,this.color[i],110+i*44,800,i*90);this.burst(p,card.ultimate?90:45,this.color[0],this.options.hero==='knight'?'petal':'spark',1.65);}else{for(let i=0;i<5;i++){this.slash(p,-1.2+i*.55,this.color[i%3],.75+i*.13,i*85);this.ring(p,this.color[i%3],60+i*23,700,i*70);}this.burst(p,card.ultimate?70:35,this.color[1],this.options.hero==='alchemist'?'mote':'crystal',1.3);}}}
     async run(effects){
       const opener=effects.find(e=>e.type==='card'),card=opener&&D.getCard({id:opener.cardId,upgraded:opener.upgraded,branch:opener.branch},this.options.hero);
+      if(opener&&card&&!API.targetsEnemies(card))opener.targets=[];
       if(card?.branch){this.color=card.branch==='power'?[this.color[0],'#fff3bd','#ffcd65']:['#b6eaff',this.color[0],'#e0c2ff'];await this.evolutionPrelude(card,opener.targets);}
       if(card?.ultimate){await this.cutIn(card);if(this.cancelled)return;this.ultimateImpact(card,opener.targets);await this.wait(170);}
       else if(card)await this.ordinary(card,opener.targets);
@@ -156,6 +158,7 @@
     }
   }
   const API={portrait,
+    targetsEnemies(card){const e=card.effects;return !!(e.damage||e.poison||e.frost||e.weak||e.vulnerable||e.poisonMultiply);},
     async play(effects,options){if(active)return;const playback=new Playback(options);active=playback;try{await playback.run(effects);}finally{playback.dispose();if(active===playback)active=null;}},
     async preview(id,options){const c=D.getCard({id,upgraded:!!options.branch,branch:options.branch},options.hero);if(!c)return;const hero=c.hero==='all'?options.hero||'knight':c.hero,targets=c.effects.damage||c.effects.poison||c.effects.frost?['preview-enemy']:[];await API.play([{type:'card',cardId:id,hero,ultimate:c.ultimate,branch:c.branch,upgraded:c.upgraded,targets}],{...options,hero,preview:true});},
     skip(){active?.skip();},get running(){return !!active;}

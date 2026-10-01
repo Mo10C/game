@@ -20,6 +20,7 @@
       if(s.screen==='bossReward'&&(!s.room||!Array.isArray(s.room.relics)||!s.room.relics.every(id=>Object.hasOwn(D.relics,id))))throw new Error('宝物の記録が壊れています。');
       if(s.screen==='treasure'&&(!s.room||(s.room.relic&&!Object.hasOwn(D.relics,s.room.relic))))throw new Error('宝箱の記録が壊れています。');
       if(s.mode!==undefined&&!['story','ascent'].includes(s.mode)||s.rank!==undefined&&(!Number.isInteger(s.rank)||s.rank<0||s.rank>10)||s.clearedStages!==undefined&&(!Number.isInteger(s.clearedStages)||s.clearedStages<0||s.clearedStages>s.act+1)||s.costume!==undefined&&!['default','festival','dawn'].includes(s.costume)||(s.mode!=='ascent'&&s.act>=5))throw new Error('踏破の記録が壊れています。');
+      if(s.playedCards!==undefined&&(!Array.isArray(s.playedCards)||s.playedCards.length>1000||!s.playedCards.every(k=>typeof k==='string'&&k.length<100)))throw new Error('図鑑の記録が壊れています。');
       this.s=s;this.fx=[];return this.s;
     }
     serialize() { return JSON.stringify(this.s); }
@@ -40,7 +41,7 @@
       let seedText=String(seed||Math.random().toString(36).slice(2,10)).slice(0,32);let hash=2166136261;for(const c of seedText)hash=Math.imul(hash^c.charCodeAt(0),16777619);
       const maxHP=Math.round(D.heroes[hero].hp*DIFFICULTIES[difficulty].hp);
       this.s={version:1,hero,difficulty,seed:seedText,rng:hash>>>0||1,serial:0,screen:'map',act:0,row:-1,lane:1,map:[],path:[],hp:maxHP,maxHP,gold:99,deck:[],relics:[D.heroes[hero].relic],potions:['heal'],battle:null,reward:null,room:null,startedAt:Date.now(),stats:{battles:0,elites:0,turns:0,cards:0,damage:0,floors:0},won:false};
-      this.s.signature=signature;Object.assign(this.s,{mode,rank,costume,title:options.title||'traveler',clearedStages:0});
+      this.s.playedCards=[];this.s.signature=signature;Object.assign(this.s,{mode,rank,costume,title:options.title||'traveler',clearedStages:0});
       for(let i=0;i<4;i++)this.addCard('strike');for(let i=0;i<3;i++)this.addCard('guard');this.addCard(D.heroes[hero].starter);this.addCard(D.heroes[hero].starter);this.addCard(signature);
       this.s.map=this.makeMap();this.fx=[];return this.s;
     }
@@ -69,7 +70,7 @@
     scaling(){const cycle=Math.floor(this.s.act/5),rank=this.s.mode==='ascent'?this.s.rank||1:0;return {hp:1+rank*.15+cycle*.45,damage:1+rank*.10+cycle*.18};}
     triggerRelic(id){const b=this.s.battle;b.relicUsed=b.relicUsed||{};b.relicUsed[id]=(b.relicUsed[id]||0)+1;this.emit('relic','player',0,D.relics[id].name,{relicId:id});this.log('✦ '+D.relics[id].name+'が発動。');}
     relicStatus(id){const b=this.s.screen==='battle'?this.s.battle:null,r=D.relics[id];if(!b)return '所持中';const used=b.relicUsed?.[id]||0;if(id==='silvermetronome')return `${b.played%3} / 3枚${used?' · 発動'+used:''}`;if(used)return '発動 '+used;if(['sunemblem','petalseal','embercore'].includes(id)&&b.attacksPlayed)return '次ターン待機';if(id==='moonpin')return `連携 ${b.played} / 2`;if(id==='sunemblem')return `灼熱 ${b.p.heat||0} / 6`;if(id==='petalseal')return `開花 ${b.p.bloom||0} / 5`;return r.hero?'待機':'有効';}
-    allTargets(instance){const c=D.getCard(instance),b=this.s.battle;return !!(c.effects.aoe||(c.effects.damage&&!b.attacksPlayed&&((this.has('petalseal')&&(b.p.bloom||0)>=5)||(this.has('sunemblem')&&(b.p.heat||0)>=6))));}
+    allTargets(instance){const c=D.getCard(instance,this.s.hero),b=this.s.battle;return !!(c.effects.aoe||(c.effects.damage&&!b.attacksPlayed&&((this.has('petalseal')&&(b.p.bloom||0)>=5)||(this.has('sunemblem')&&(b.p.heat||0)>=6))));}
 
     addRelic(id) {if(!id||this.has(id))return false;this.s.relics.push(id);if(id==='cookie'){this.s.maxHP+=12;this.heal(12);}return true;}
     heal(n) {const amount=Math.min(n,this.s.maxHP-this.s.hp);this.s.hp+=amount;if(amount>0)this.emit('heal','player',amount);return amount;}
@@ -103,14 +104,19 @@
       if(b.p.poisonTurn)for(const e of b.enemies)if(e.hp>0)e.poison+=b.p.poisonTurn;
       this.drawCards(5+(this.has('feather')?1:0)+(b.p.drawTurn||0)+(b.turn===1&&this.has('moonstone')?1:0));
     }
-    needsTarget(instance) {const e=D.getCard(instance)?.effects||{};return !this.allTargets(instance)&&!!(e.damage||e.poison||e.frost||e.weak||e.vulnerable||e.poisonMultiply);}
-    damageFor(instance,enemy) {const c=D.getCard(instance),e=c.effects,b=this.s.battle,p=b.p;let n=(e.damage||0)+(p.strength||0)+(p.bloom||0)+(p.heat||0)+(e.heatScale||0)*(p.heat||0)+(e.comboScale||0)*(b.played||0)+(e.bloomScale||0)*(p.bloom||0)+(e.frostScale||0)*(enemy?.frost||0)+(e.poisonScale||0)*(enemy?.poison||0);if(p.weak)n*=.75;if(enemy?.vulnerable)n*=1.5;return Math.max(0,Math.floor(n));}
+    needsTarget(instance) {const e=D.getCard(instance,this.s.hero)?.effects||{};return !this.allTargets(instance)&&!!(e.damage||e.poison||e.frost||e.weak||e.vulnerable||e.poisonMultiply);}
+    damageFor(instance,enemy) {const c=D.getCard(instance,this.s.hero),e=c.effects,b=this.s.battle,p=b.p;let n=(e.damage||0)+(p.strength||0)+(p.bloom||0)+(p.heat||0)+(e.heatScale||0)*(p.heat||0)+(e.comboScale||0)*(b.played||0)+(e.bloomScale||0)*(p.bloom||0)+(e.frostScale||0)*(enemy?.frost||0)+(e.poisonScale||0)*(enemy?.poison||0);if(p.weak)n*=.75;if(enemy?.vulnerable)n*=1.5;return Math.max(0,Math.floor(n));}
     intent(enemy) {
       const source=D.enemies[enemy.id],a=clone(source.pattern[enemy.turn%source.pattern.length]);
-      if(enemy.id==='bossOwl'&&enemy.turn%3===2){if((enemy.interrupt||0)>=2)return {kind:'stun',label:'詠唱中断'};Object.assign(a,{kind:'attack',damage:32,hits:1});delete a.block;delete a.strength;delete a.status;}
-      if(enemy.id==='bossGriffin'&&enemy.turn%2===1&&(enemy.interrupt||0)>=3)return {kind:'stun',label:'嵐を中断'};
+      if(enemy.id==='bossGriffin'&&enemy.turn%2===1&&(enemy.interrupt||0)>=D.bossRules.griffinInterruptHits)return {kind:'stun',label:'嵐を中断'};
       if(enemy.id==='bossAurora'&&enemy.turn%2===1&&(enemy.interrupt||0)>=3)a.damage=Math.max(0,a.damage-14);
-      if(a.damage){let damage=Math.round(a.damage*DIFFICULTIES[this.s.difficulty].damage*this.scaling().damage)+(enemy.strength||0)-(enemy.frost||0);damage=Math.max(0,damage);if(enemy.weak)damage*=.75;if(this.s.battle.p.vulnerable)damage*=1.5;a.damage=Math.max(0,Math.floor(damage));}return a;
+      if(a.damage){let damage=Math.round(a.damage*DIFFICULTIES[this.s.difficulty].damage*this.scaling().damage)+(enemy.strength||0)-(enemy.frost||0);damage=Math.max(0,damage);if(enemy.weak)damage*=.75;if(this.s.battle.p.vulnerable)damage*=1.5;a.damage=Math.max(0,Math.floor(damage));}if(enemy.id==='bossOwl')a.heal=this.bossHealing(enemy);return a;
+    }
+    bossHealing(enemy){return enemy.id==='bossOwl'?Math.ceil(enemy.maxHP*D.bossRules.seleneHealRate):0;}
+    healEnemy(enemy){
+      if(enemy.hp<=0)return 0;const amount=Math.min(this.bossHealing(enemy),enemy.maxHP-enemy.hp);
+      if(amount>0){enemy.hp+=amount;this.emit('heal',enemy.uid,amount,'月光の再生',{hp:enemy.hp,maxHP:enemy.maxHP,block:enemy.block});this.log(`${enemy.name}は月光の再生でHPを${amount}回復。`);}
+      return amount;
     }
     enemyDamage(enemy,amount,piercing=false) {
       if(enemy.hp<=0)return;const before=amount;if(!piercing){if(enemy.id==='bossRose'&&(enemy.petals??3)>0){amount=Math.floor(amount*.5);enemy.petals=(enemy.petals??3)-1;}if(enemy.id==='bossDragon'&&this.s.battle.enemies.some(e=>e.id==='crystalguard'&&e.hp>0))amount=Math.floor(amount*.5);if(enemy.id==='bossAurora'&&enemy.turn%2===0)amount=Math.max(0,amount-6);}const reduced=before-amount;let blocked=piercing?0:Math.min(enemy.block,amount);enemy.block-=blocked;const dealt=Math.min(enemy.hp,amount-blocked);enemy.hp-=dealt;this.s.stats.damage+=dealt;this.emit(piercing?'poison':'damage',enemy.uid,dealt,blocked?`防御 ${blocked}`:null,{hp:enemy.hp,maxHP:enemy.maxHP,block:enemy.block,blocked,reduced});if(enemy.hp<=0)this.emit('defeat',enemy.uid,0);
@@ -120,8 +126,10 @@
     play(uid,targetUid) {
       this.expect('battle');const b=this.s.battle;const index=b.hand.findIndex(c=>c.uid===Number(uid));if(index<0)throw new Error('そのカードは手札にありません。');const instance=b.hand[index],c=D.getCard(instance,this.s.hero),e=c.effects;
       if(c.cost<0)throw new Error('このカードはプレイできません。');if(c.cost>b.energy)throw new Error('エナジーが足りません。');
-      const target=b.enemies.find(x=>x.uid===targetUid&&x.hp>0);if(this.needsTarget(instance)&&!target)throw new Error('対象の敵を選んでください。');
+      const needsTarget=this.needsTarget(instance),alive=b.enemies.filter(x=>x.hp>0);
+      const target=needsTarget?(targetUid?alive.find(x=>x.uid===targetUid):alive.length===1?alive[0]:null):null;if(needsTarget&&!target)throw new Error('対象の敵を選んでください。');
       b.energy-=c.cost;b.hand.splice(index,1);this.s.stats.cards++;this.log(`${c.name}を使った。`);
+      const playedKey=instance.id+':'+(instance.branch||(instance.upgraded?'plus':'base'));this.s.playedCards=this.s.playedCards||[];if(!this.s.playedCards.includes(playedKey))this.s.playedCards.push(playedKey);
       const all=this.allTargets(instance);const targets=all?b.enemies.filter(x=>x.hp>0):(target?[target]:[]);
       this.emit('card','player',c.art,c.name,{cardId:c.id,cardUid:instance.uid,hero:this.s.hero,ultimate:c.ultimate,branch:instance.branch,upgraded:instance.upgraded,targets:targets.map(t=>t.uid)});
       if(e.damage){
@@ -131,7 +139,7 @@
         if(!b.attacksPlayed&&this.has('wolfcharm')){b.block+=3;this.emit('block','player',3);}for(const enemy of b.enemies)if(enemy.id==='bossAurora')enemy.interrupt=(enemy.interrupt||0)+1;
         if(e.consumeHeat)b.p.heat=0;else if(!b.attacksPlayed&&this.has('embercore')&&b.p.heat)this.triggerRelic('embercore');else if(b.p.heat)b.p.heat=Math.max(0,b.p.heat-1);b.attacksPlayed++;
       }
-      if(c.type==='skill'){b.skillsPlayed=(b.skillsPlayed||0)+1;for(const enemy of b.enemies)if(enemy.id==='bossOwl'&&enemy.turn%3===2)enemy.interrupt=(enemy.interrupt||0)+1;}
+      if(c.type==='skill')b.skillsPlayed=(b.skillsPlayed||0)+1;
       const poisonBonus=e.poison&&this.has('amberflask')&&!b.relicUsed?.amberflask?2:0;if(poisonBonus&&targets.some(t=>t.hp>0))this.triggerRelic('amberflask');
       if(e.block){let n=e.block+(b.p.dexterity||0)+(e.bloomBlock||0)*(b.p.bloom||0)+(e.comboBlock||0)*b.played;if(b.firstBlock&&this.has('clover'))n+=3;b.firstBlock=false;b.block+=n;this.emit('block','player',n);}
       for(const enemy of targets)if(enemy.hp>0){for(const key of ['poison','frost','weak','vulnerable'])if(e[key]){const amount=e[key]+(key==='poison'?poisonBonus:0);enemy[key]+=amount;this.emit('status',enemy.uid,amount,D.statusLabels[key][0]);}if(e.poisonMultiply){enemy.poison*=e.poisonMultiply;this.emit('status',enemy.uid,enemy.poison,'毒');}}
@@ -147,7 +155,7 @@
     }
     endTurn() {
       this.expect('battle');const b=this.s.battle;
-      for(const c of b.hand){if(c.id==='curse')this.playerDamage(2,true);if(D.getCard(c).effects.ethereal)b.exhaust.push(c);else b.discard.push(c);}b.hand=[];
+      for(const c of b.hand){if(c.id==='curse')this.playerDamage(2,true);if(D.getCard(c,this.s.hero).effects.ethereal)b.exhaust.push(c);else b.discard.push(c);}b.hand=[];
       if(this.s.hp<=0){this.checkEnd();return;}
       if(this.has('rootretort')&&b.enemies.some(e=>e.hp>0&&e.poison)){b.block+=4;this.triggerRelic('rootretort');this.emit('block','player',4);}
       if(b.p.regen){this.heal(b.p.regen);b.p.regen--;}
@@ -159,6 +167,7 @@
         const action=this.intent(enemy);this.emit('enemyAction',enemy.uid,0,action.kind);
         if(action.damage!==undefined){for(let i=0;i<(action.hits||1);i++){this.playerDamage(action.damage,false,enemy);if(this.s.hp<=0||enemy.hp<=0)break;}this.log(`${enemy.name}：${action.damage}${action.hits>1?'×'+action.hits:''}ダメージ。`);}
         if(enemy.hp>0){if(action.block){enemy.block+=action.block;this.emit('block',enemy.uid,action.block);}if(action.strength){enemy.strength+=action.strength;this.emit('buff',enemy.uid,action.strength,'筋力');}if(action.status==='dazed'){for(let i=0;i<action.amount;i++)b.discard.push({id:'dazed',uid:this.uid(),upgraded:false});this.log(`捨て札に「まどろみ」${action.amount}枚。`);}else if(action.status)b.p[action.status]=(b.p[action.status]||0)+action.amount;}
+        if(enemy.hp>0&&this.s.hp>0)this.healEnemy(enemy);
         enemy.turn++;if(enemy.weak)enemy.weak--;if(enemy.vulnerable)enemy.vulnerable--;if(enemy.frost)enemy.frost--;
         if(this.s.hp<=0)break;
       }
@@ -214,7 +223,17 @@
     usePotion(index) {if(!this.s||['result','bossReward'].includes(this.s.screen))throw new Error('ここでは使えません。');index=Number(index);const id=this.s.potions[index];if(!id)throw new Error('ポーションがありません。');if(id!=='heal')this.expect('battle');if(id==='heal'&&this.s.hp>=this.s.maxHP)throw new Error('HPは満タンです。');this.s.potions.splice(index,1);
       if(id==='heal')this.heal(20+(this.has('vial')?8:0));if(id==='energy')this.s.battle.energy+=2;if(id==='shield'){this.s.battle.block+=15;this.emit('block','player',15);}if(id==='fire'){for(const e of this.s.battle.enemies)this.enemyDamage(e,20);this.checkEnd();}return id;
     }
-    bossMechanic(enemy){const guards=this.s.battle.enemies.filter(e=>e.id==='crystalguard'&&e.hp>0).length,table={bossRose:['花弁結界',`残り ${enemy.petals??3} / 3枚`,'毎ターン、最初の3ヒットを半減。連撃で結界を割ろう。毒は結界を無視する。'],bossOwl:['月の詠唱',enemy.turn%3===2?`スキル ${Math.min(2,enemy.interrupt||0)} / 2`:`詠唱まで ${2-enemy.turn%3}ターン`,'3ターンごとに大魔法。詠唱ターン中にスキル2枚で中断する。'],bossDragon:['星の護衛',`護衛 ${guards}体`,'護衛がいる間、本体への直接ダメージを半減。先に星晶を倒そう。'],bossGriffin:['嵐の溜め',enemy.turn%2===1?`攻撃ヒット ${Math.min(3,enemy.interrupt||0)} / 3`:'次ターンに溜め','溜め中に本体へ3ヒットを当てると大技を中断。連撃が有効。'],bossAurora:[enemy.turn%2===0?'日輪の守り':'月輪の試練',enemy.turn%2===0?'各ヒット −6':`アタック ${Math.min(3,enemy.interrupt||0)} / 3`,'日輪は直接ダメージを1ヒットごとに6軽減。月輪はアタック3枚で次の大技の基礎威力が14下がる。']};const t=table[enemy.id];return t?{name:t[0],progress:t[1],description:t[2]}:null;}
+    bossMechanic(enemy){
+      const guards=this.s.battle.enemies.filter(e=>e.id==='crystalguard'&&e.hp>0).length,hits=D.bossRules.griffinInterruptHits;
+      const table={
+        bossRose:['花弁結界',`残り ${enemy.petals??3} / 3枚`,'毎ターン、最初の3ヒットを半減。連撃で結界を割ろう。毒は結界を無視する。'],
+        bossOwl:['月光の再生',`毎ターン HP＋${this.bossHealing(enemy)}`,`自身の行動後、最大HPの${D.bossRules.seleneHealRate*100}％を回復（端数切り上げ）。最大HPを超えず、倒すと回復しない。スキルでは中断できない。`],
+        bossDragon:['星の護衛',`護衛 ${guards}体`,'護衛がいる間、本体への直接ダメージを半減。先に星晶を倒そう。'],
+        bossGriffin:['嵐の溜め',enemy.turn%2===1?`攻撃ヒット ${Math.min(hits,enemy.interrupt||0)} / ${hits}`:'次ターンに溜め',`溜め中に本体へ${hits}ヒットを当てると大技を中断。連撃が有効。`],
+        bossAurora:[enemy.turn%2===0?'日輪の守り':'月輪の試練',enemy.turn%2===0?'各ヒット −6':`アタック ${Math.min(3,enemy.interrupt||0)} / 3`,'日輪は直接ダメージを1ヒットごとに6軽減。月輪はアタック3枚で次の大技の基礎威力が14下がる。']
+      };
+      const t=table[enemy.id];return t?{name:t[0],progress:t[1],description:t[2]}:null;
+    }
     previewCard(uid,targetUid){this.expect('battle');const instance=this.s.battle.hand.find(c=>c.uid===Number(uid));if(!instance)return null;const simulated=new Engine(this.serialize()),before=clone(this.s.battle),hp=this.s.hp;try{simulated.play(uid,targetUid);}catch(error){return {error:error.message};}const after=simulated.s.battle,events=simulated.fx;return {name:D.getCard(instance,this.s.hero).name,block:after.block-before.block,heal:Math.max(0,simulated.s.hp-hp),energy:after.energy-before.energy,enemies:before.enemies.filter(e=>e.hp>0).map(e=>{const a=after.enemies.find(x=>x.uid===e.uid),hits=events.filter(x=>x.target===e.uid&&x.type==='damage');return {uid:e.uid,name:e.name,hp:a.hp,maxHP:a.maxHP,damage:e.hp-a.hp,blocked:hits.reduce((n,x)=>n+(x.blocked||0),0),reduced:hits.reduce((n,x)=>n+(x.reduced||0),0),hits:hits.map(x=>x.value),poison:a.poison-e.poison,frost:a.frost-e.frost,intent:simulated.intent(a)};}),relics:events.filter(e=>e.type==='relic').map(e=>e.label)};}
     damageBreakdown(uid,enemy){const c=this.s.battle.hand.find(c=>c.uid===Number(uid));if(!c)return [];const e=D.getCard(c).effects,p=this.s.battle.p;if(!e.damage)return [];const parts=[['基礎',e.damage],['筋力',p.strength||0],['開花',p.bloom||0],['灼熱',p.heat||0],['灼熱倍率',(e.heatScale||0)*(p.heat||0)],['連携',(e.comboScale||0)*this.s.battle.played],['開花倍率',(e.bloomScale||0)*(p.bloom||0)],['氷結倍率',(e.frostScale||0)*(enemy?.frost||0)],['毒倍率',(e.poisonScale||0)*(enemy?.poison||0)]].filter(x=>x[1]);if(p.weak)parts.push(['脱力','×0.75']);if(enemy?.vulnerable)parts.push(['無防備','×1.5']);return parts;}
     retire(){this.expect('bossReward');if(this.s.mode!=='ascent')throw new Error('踏破モードで使えます。');this.s.screen='result';this.s.retired=true;this.s.won=false;this.s.endedAt=Date.now();}
