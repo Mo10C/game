@@ -1,0 +1,62 @@
+{
+  "generation": "built-in image_gen",
+  "files": [
+    {
+      "path": "assets/boss-night.png",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "sha256": "0c17fa45a12aba69a31e4815af9b4cc6e4ca02b82c897c3965634e477dd7f6f8"
+    },
+    {
+      "path": "assets/boss-solar.png",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "sha256": "8ead52496c978dc13ffc62e6c1b9b5aeb652cec4a31c40eac81d8c7d7f7a10ad"
+    },
+    {
+      "path": "assets/boss-storm.png",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "sha256": "1b33a9abbd4cf4e467d0f7b9d919ef5e8996623a8c4ef6ebfa6cfd4470941c29"
+    },
+    {
+      "path": "assets/familiars-alchemist.png",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "sha256": "dd20c22622e380b1aec402c7bef221e2a53a736a912bddfc191849e9a44449f7"
+    },
+    {
+      "path": "assets/familiars-dragoon.png",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "sha256": "3302d97f5287753a639d3d94908c247d1f6ebf1e37f3c12e7636c5828c526a03"
+    },
+    {
+      "path": "assets/familiars-knight.png",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "sha256": "85e31d0af0f01bcf53181ae8acd2edc02e2db5e2823128f2999f82ec7c2956f4"
+    },
+    {
+      "path": "assets/familiars-ranger.png",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "sha256": "90f8dd05b7a33845c175f427bb11f98c7f7d31b01d17e6261a8c36c4b84ebee7"
+    },
+    {
+      "path": "assets/familiars-witch.png",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "sha256": "84a0b09f17324b17f444639bbb50812f4645a52edb9625db7b976669a15cce4a"
+    }
+  ],
+  "regions": "journey-data.js / D.familiarArt"
+}

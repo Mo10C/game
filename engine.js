@@ -1,6 +1,6 @@
 (function (root) {
   'use strict';
-  const D = typeof module !== 'undefined' && module.exports ? require('./expansion-data.js') : root.BloomData;
+  const D = typeof module !== 'undefined' && module.exports ? require('./journey-data.js') : root.BloomData;
   const clone = value => JSON.parse(JSON.stringify(value));
   const DIFFICULTIES = {picnic:{name:'おさんぽ',hp:1.15,enemyHP:.85,damage:.85,gold:1.15},adventure:{name:'冒険',hp:1,enemyHP:1,damage:1,gold:1},moonlight:{name:'月夜の試練',hp:1,enemyHP:1.35,damage:1.35,gold:1}};
   class Engine {
@@ -11,7 +11,7 @@
       const validCard=c=>c&&Object.hasOwn(D.cards,c.id)&&Number.isSafeInteger(c.uid)&&typeof c.upgraded==='boolean'&&(!c.branch||(c.upgraded&&['power','technique'].includes(c.branch)&&!['curse','status'].includes(D.cards[c.id].type)));
       const finite=n=>typeof n==='number'&&Number.isFinite(n);
       if(!Number.isInteger(s.act)||s.act<0||s.act>9999||!Number.isInteger(s.row)||s.row< -1||s.row>11||!finite(s.maxHP)||s.maxHP<=0||s.hp<0||s.hp>s.maxHP||!finite(s.gold)||s.gold<0||!Number.isSafeInteger(s.serial)||!finite(s.rng)||!finite(s.startedAt)||!s.stats||!['battles','elites','turns','cards','damage','floors'].every(k=>finite(s.stats[k]))||!s.deck.length||!s.deck.every(validCard)||!Array.isArray(s.relics)||!s.relics.every(id=>Object.hasOwn(D.relics,id))||!Array.isArray(s.potions)||s.potions.length>3||!s.potions.every(id=>Object.hasOwn(D.potions,id))||s.map.length!==12||!s.map.every(row=>Array.isArray(row)&&row.every(n=>n&&['battle','elite','boss','rest','event','shop','treasure'].includes(n.kind)&&Array.isArray(n.links)))||!Array.isArray(s.path))throw new Error('冒険の記録に読み込めない項目があります。');
-      if(!['map','battle','reward','rest','shop','event','treasure','bossReward','result'].includes(s.screen))throw new Error('冒険の記録が壊れています。');
+      if(!['map','battle','reward','rest','shop','event','treasure','bossReward','awakening','result'].includes(s.screen))throw new Error('冒険の記録が壊れています。');
       if(s.screen==='battle'&&(!s.battle||!Array.isArray(s.battle.hand)||!Array.isArray(s.battle.enemies)))throw new Error('戦闘の記録が壊れています。');
       if(s.screen==='battle'&&(!['hand','draw','discard','exhaust'].every(k=>Array.isArray(s.battle[k])&&s.battle[k].every(validCard))||!s.battle.enemies.every(e=>Object.hasOwn(D.enemies,e.id)&&finite(e.hp)&&finite(e.maxHP)&&finite(e.block))||!s.battle.p||!finite(s.battle.energy)||!Array.isArray(s.battle.log)))throw new Error('戦闘の記録が壊れています。');
       if(s.screen==='event'&&(!s.room||!D.events.some(e=>e.id===s.room.event)))throw new Error('できごとの記録が壊れています。');
@@ -21,6 +21,19 @@
       if(s.screen==='treasure'&&(!s.room||(s.room.relic&&!Object.hasOwn(D.relics,s.room.relic))))throw new Error('宝箱の記録が壊れています。');
       if(s.mode!==undefined&&!['story','ascent'].includes(s.mode)||s.rank!==undefined&&(!Number.isInteger(s.rank)||s.rank<0||s.rank>10)||s.clearedStages!==undefined&&(!Number.isInteger(s.clearedStages)||s.clearedStages<0||s.clearedStages>s.act+1)||s.costume!==undefined&&!['default','festival','dawn'].includes(s.costume)||(s.mode!=='ascent'&&s.act>=5))throw new Error('踏破の記録が壊れています。');
       if(s.playedCards!==undefined&&(!Array.isArray(s.playedCards)||s.playedCards.length>1000||!s.playedCards.every(k=>typeof k==='string'&&k.length<100)))throw new Error('図鑑の記録が壊れています。');
+      if(s.awakening!=null&&(!Object.hasOwn(D.awakenings,s.awakening)||D.awakenings[s.awakening].hero!==s.hero))throw new Error('覚醒の記録が壊れています。');
+      // The preview's human companion IDs migrate to the hero's first familiar.
+      if(Object.hasOwn(D.heroes,s.companion))s.companion=D.companionChoices(s.hero)[0].id;
+      if(s.companion!=null&&(!Object.hasOwn(D.companions,s.companion)||D.companions[s.companion].hero!==s.hero))throw new Error('相棒の記録が壊れています。');
+      if(s.screen==='awakening'&&(s.act<2||s.awakening))throw new Error('覚醒の選択記録が壊れています。');
+      if(s.battle){
+        if(s.battle.companionUsed!==undefined&&typeof s.battle.companionUsed!=='boolean')throw new Error('相棒の使用記録が壊れています。');
+        if(s.battle.awakeningUsed!==undefined&&(!s.battle.awakeningUsed||Array.isArray(s.battle.awakeningUsed)||typeof s.battle.awakeningUsed!=='object'||Object.values(s.battle.awakeningUsed).some(v=>typeof v!=='boolean')))throw new Error('覚醒の使用記録が壊れています。');
+        s.battle.companionUsed??=false;s.battle.awakeningUsed??={};
+      }
+      s.awakening??=null;s.companion??=null;
+      // Legacy runs receive their missing choice at the next safe map, never mid-battle.
+      if(s.screen==='map'&&s.act>=2&&!s.awakening)s.screen='awakening';
       this.s=s;this.fx=[];return this.s;
     }
     serialize() { return JSON.stringify(this.s); }
@@ -35,13 +48,14 @@
     log(text) { if(this.s.battle){this.s.battle.log.push(text);this.s.battle.log=this.s.battle.log.slice(-30);} }
     newRun(hero='knight',difficulty='adventure',seed,signature,options={}) {
       if(!D.heroes[hero]||!DIFFICULTIES[difficulty])throw new Error('冒険者を選んでください。');
+      if(options.companion!=null&&(!Object.hasOwn(D.companions,options.companion)||D.companions[options.companion].hero!==hero))throw new Error('このキャラの相棒を選んでください。');
       signature=signature||D.heroes[hero].ultimates[0];
       if(!D.heroes[hero].ultimates.includes(signature))throw new Error('この冒険者の必殺技を選んでください。');
       const mode=options.mode||'story',rank=mode==='ascent'?(options.rank||1):0,costume=options.costume||'default';if(!['story','ascent'].includes(mode)||!Number.isInteger(rank)||rank<0||rank>10||!['default','festival','dawn'].includes(costume))throw new Error('旅の設定を選び直してください。');
       let seedText=String(seed||Math.random().toString(36).slice(2,10)).slice(0,32);let hash=2166136261;for(const c of seedText)hash=Math.imul(hash^c.charCodeAt(0),16777619);
       const maxHP=Math.round(D.heroes[hero].hp*DIFFICULTIES[difficulty].hp);
       this.s={version:1,hero,difficulty,seed:seedText,rng:hash>>>0||1,serial:0,screen:'map',act:0,row:-1,lane:1,map:[],path:[],hp:maxHP,maxHP,gold:99,deck:[],relics:[D.heroes[hero].relic],potions:['heal'],battle:null,reward:null,room:null,startedAt:Date.now(),stats:{battles:0,elites:0,turns:0,cards:0,damage:0,floors:0},won:false};
-      this.s.playedCards=[];this.s.signature=signature;Object.assign(this.s,{mode,rank,costume,title:options.title||'traveler',clearedStages:0});
+      this.s.playedCards=[];this.s.signature=signature;Object.assign(this.s,{mode,rank,costume,title:options.title||'traveler',clearedStages:0,awakening:null,companion:options.companion||null});
       for(let i=0;i<4;i++)this.addCard('strike');for(let i=0;i<3;i++)this.addCard('guard');this.addCard(D.heroes[hero].starter);this.addCard(D.heroes[hero].starter);this.addCard(signature);
       this.s.map=this.makeMap();this.fx=[];return this.s;
     }
@@ -81,7 +95,7 @@
     startBattle(kind) {
       const a=D.actFor(this.s.act);let ids;
       if(kind==='boss')ids=a.boss==='bossDragon'?['crystalguard',a.boss,'crystalguard']:[a.boss];else if(kind==='elite')ids=[this.pick(a.elite)];else if(this.s.act===0&&this.s.row===0)ids=[this.pick(['slime','shroom'])];else ids=this.pick(a.normal);
-      this.s.screen='battle';this.s.battle={kind,turn:0,energy:0,maxEnergy:3,block:0,p:{},hand:[],draw:this.shuffle(clone(this.s.deck)),discard:[],exhaust:[],enemies:ids.map((id,i)=>this.createEnemy(id,i,kind)),firstBlock:true,log:[],attacksPlayed:0,played:0};
+      this.s.screen='battle';this.s.battle={kind,turn:0,energy:0,maxEnergy:3,block:0,p:{},hand:[],draw:this.shuffle(clone(this.s.deck)),discard:[],exhaust:[],enemies:ids.map((id,i)=>this.createEnemy(id,i,kind)),firstBlock:true,log:[],attacksPlayed:0,played:0,companionUsed:false,awakeningUsed:{}};
       const b=this.s.battle;
       // The chosen signature opens each battle, provided it is still in the deck.
       const signatureIndex=b.draw.findIndex(c=>c.id===this.s.signature);
@@ -93,7 +107,7 @@
     }
     drawCards(n) {const b=this.s.battle;for(let i=0;i<n;i++){if(b.hand.length>=10)break;if(!b.draw.length){if(!b.discard.length)break;b.draw=this.shuffle(b.discard);b.discard=[];this.emit('shuffle','player',0);this.log('捨て札をシャッフルして山札に戻した。');}b.hand.push(b.draw.pop());}}
     startTurn() {
-      const b=this.s.battle;b.turn++;this.s.stats.turns++;b.firstBlock=true;b.played=0;b.attacksPlayed=0;b.skillsPlayed=0;b.relicUsed={};for(const enemy of b.enemies){enemy.interrupt=0;if(enemy.id==='bossRose')enemy.petals=3;}
+      const b=this.s.battle;b.turn++;this.s.stats.turns++;b.firstBlock=true;b.played=0;b.attacksPlayed=0;b.skillsPlayed=0;b.relicUsed={};b.awakeningUsed={};for(const enemy of b.enemies){enemy.interrupt=0;if(enemy.id==='bossRose')enemy.petals=3;}
       if(this.s.hero==='ranger')b.p.combo=0;
       if(b.p.heatTurn||this.has('dragonscale'))b.p.heat=(b.p.heat||0)+(b.p.heatTurn||0)+(this.has('dragonscale')?1:0);
       if(!b.p.preserveBlock)b.block=0;
@@ -103,9 +117,11 @@
       b.block+=(b.p.blockTurn||0)+(this.has('mirror')?6:0);
       if(b.p.poisonTurn)for(const e of b.enemies)if(e.hp>0)e.poison+=b.p.poisonTurn;
       this.drawCards(5+(this.has('feather')?1:0)+(b.p.drawTurn||0)+(b.turn===1&&this.has('moonstone')?1:0));
+      if(this.s.awakening==='heatRise'){b.p.heat=(b.p.heat||0)+2;this.triggerAwakening();this.emit('buff','player',2,'灼熱');}
+      if(this.s.awakening==='frostKeep'){for(const e of b.enemies)if(e.hp>0)e.frost++;this.triggerAwakening();}
     }
     needsTarget(instance) {const e=D.getCard(instance,this.s.hero)?.effects||{};return !this.allTargets(instance)&&!!(e.damage||e.poison||e.frost||e.weak||e.vulnerable||e.poisonMultiply);}
-    damageFor(instance,enemy) {const c=D.getCard(instance,this.s.hero),e=c.effects,b=this.s.battle,p=b.p;let n=(e.damage||0)+(p.strength||0)+(p.bloom||0)+(p.heat||0)+(e.heatScale||0)*(p.heat||0)+(e.comboScale||0)*(b.played||0)+(e.bloomScale||0)*(p.bloom||0)+(e.frostScale||0)*(enemy?.frost||0)+(e.poisonScale||0)*(enemy?.poison||0);if(p.weak)n*=.75;if(enemy?.vulnerable)n*=1.5;return Math.max(0,Math.floor(n));}
+    damageFor(instance,enemy,extra=0) {const c=D.getCard(instance,this.s.hero),e=c.effects,b=this.s.battle,p=b.p;let n=(e.damage||0)+extra+(p.strength||0)+(p.bloom||0)+(p.heat||0)+(e.heatScale||0)*(p.heat||0)+(e.comboScale||0)*(b.played||0)+(e.bloomScale||0)*(p.bloom||0)+(e.frostScale||0)*(enemy?.frost||0)+(e.poisonScale||0)*(enemy?.poison||0);if(p.weak)n*=.75;if(enemy?.vulnerable)n*=1.5;return Math.max(0,Math.floor(n));}
     intent(enemy) {
       const source=D.enemies[enemy.id],a=clone(source.pattern[enemy.turn%source.pattern.length]);
       if(enemy.id==='bossGriffin'&&enemy.turn%2===1&&(enemy.interrupt||0)>=D.bossRules.griffinInterruptHits)return {kind:'stun',label:'嵐を中断'};
@@ -123,6 +139,40 @@
       if(enemy.boss&&!enemy.enraged&&enemy.hp>0&&enemy.hp<=enemy.maxHP*.5){enemy.enraged=true;enemy.strength+=2+this.s.act;this.emit('buff',enemy.uid,2+this.s.act,'覚醒');this.log(`${enemy.name}が覚醒！ 筋力が${2+this.s.act}増えた。`);}
     }
     playerDamage(amount,piercing=false,source) {const b=this.s.battle;const blocked=piercing?0:Math.min(b.block,amount);b.block-=blocked;const n=amount-blocked;this.s.hp=Math.max(0,this.s.hp-n);this.emit(n?'damage':'block','player',n||blocked,null,{hp:this.s.hp,maxHP:this.s.maxHP,block:b.block,blocked,source:source?.uid});if(source&&b.p.thorns)this.enemyDamage(source,b.p.thorns,true);}
+    triggerAwakening(){const a=D.awakenings[this.s.awakening];if(a){this.emit('awakening','player',0,a.name,{awakeningId:a.id});this.log('✧ 覚醒「'+a.name+'」が発動。');}}
+    grantBlock(n){if(n>0){this.s.battle.block+=n;this.emit('block','player',n);}}
+    awakeningAfterCard(c){
+      const b=this.s.battle,e=c.effects,id=this.s.awakening;let triggered=false;
+      if(id==='bloomWard'&&e.bloom){this.grantBlock(e.bloom*3);triggered=true;}
+      if(id==='heatWard'&&e.heat){this.grantBlock(e.heat*3);triggered=true;}
+      if(c.type==='skill'&&b.skillsPlayed===1){
+        if(id==='bloomCycle'){b.p.bloom=(b.p.bloom||0)+2;this.emit('buff','player',2,'開花');this.drawCards(1);triggered=true;}
+        if(id==='starReader'){this.grantBlock(6);this.drawCards(1);triggered=true;}
+      }
+      if(id==='reagentCycle'&&(e.exhaust||c.type==='power')&&!b.awakeningUsed.recycle){b.awakeningUsed.recycle=true;this.drawCards(2);b.energy++;triggered=true;}
+      if(id==='windWard'&&b.played%3===0){this.grantBlock(9);triggered=true;}
+      if(id==='windCycle'&&b.played===3){this.drawCards(2);b.energy++;triggered=true;}
+      if(triggered)this.triggerAwakening();
+    }
+    chooseAwakening(id){this.expect('awakening');if(this.s.awakening||this.s.act<2||!Object.hasOwn(D.awakenings,id)||D.awakenings[id].hero!==this.s.hero)throw new Error('この冒険者の覚醒を選んでください。');this.s.awakening=id;this.finishRoom();this.emit('awakenChosen','player',0,D.awakenings[id].name,{awakeningId:id,hero:this.s.hero});}
+    chooseCompanion(id){this.expect('map');if(this.s.companion||!Object.hasOwn(D.companions,id)||D.companions[id].hero!==this.s.hero)throw new Error('このキャラの3種類の相棒から1体選んでください。');this.s.companion=id;}
+    useCompanion(){
+      this.expect('battle');const b=this.s.battle,id=this.s.companion,a=D.companions[id];
+      if(!a)throw new Error('相棒はマップで迎えられます。');if(b.companionUsed)throw new Error('相棒の支援は1戦闘に1回です。');
+      const targets=b.enemies.filter(e=>e.hp>0);if(!targets.length||this.s.hp<=0)throw new Error('戦闘中に使えます。');
+      b.companionUsed=true;const resonance=!!this.s.awakening,bond=D.bondFor(this.s.hero,id);
+      const offensive=effects=>effects.damage||effects.frost||effects.poison||effects.weak;
+      this.emit('companion','player',0,resonance?bond.name:a.skill,{companion:id,hero:this.s.hero,resonance,targets:(offensive(a.effects)||resonance&&offensive(D.resonances[this.s.hero].effects))?targets.map(e=>e.uid):[]});
+      this.log('✦ '+a.name+'の'+(resonance?'共鳴支援「'+bond.name+'」':a.skill)+'！');
+      const apply=effects=>{
+        if(effects.damage)for(let hit=0;hit<(effects.hits||1);hit++)for(const e of targets)if(e.hp>0){this.enemyDamage(e,Math.floor(effects.damage*(e.vulnerable?1.5:1)));if(e.id==='bossGriffin'&&e.turn%2===1)e.interrupt=(e.interrupt||0)+1;}
+        this.grantBlock(effects.block||0);if(effects.heal)this.heal(effects.heal);
+        for(const key of ['bloom','heat'])if(effects[key]){b.p[key]=(b.p[key]||0)+effects[key];this.emit('buff','player',effects[key],D.statusLabels[key][0]);}
+        for(const key of ['frost','poison','weak'])if(effects[key])for(const e of targets)if(e.hp>0){e[key]+=effects[key];this.emit('status',e.uid,effects[key],D.statusLabels[key][0]);}
+        if(effects.draw)this.drawCards(effects.draw);if(effects.energy)b.energy+=effects.energy;
+      };
+      apply(a.effects);if(resonance)apply(D.resonances[this.s.hero].effects);this.checkEnd();
+    }
     play(uid,targetUid) {
       this.expect('battle');const b=this.s.battle;const index=b.hand.findIndex(c=>c.uid===Number(uid));if(index<0)throw new Error('そのカードは手札にありません。');const instance=b.hand[index],c=D.getCard(instance,this.s.hero),e=c.effects;
       if(c.cost<0)throw new Error('このカードはプレイできません。');if(c.cost>b.energy)throw new Error('エナジーが足りません。');
@@ -133,14 +183,24 @@
       const all=this.allTargets(instance);const targets=all?b.enemies.filter(x=>x.hp>0):(target?[target]:[]);
       this.emit('card','player',c.art,c.name,{cardId:c.id,cardUid:instance.uid,hero:this.s.hero,ultimate:c.ultimate,branch:instance.branch,upgraded:instance.upgraded,targets:targets.map(t=>t.uid)});
       if(e.damage){
+        const awakening=this.s.awakening,first=!b.attacksPlayed,heatSpent=first&&awakening==='heatBurst'?Math.min(4,b.p.heat||0):0;
+        const frostSpent=Object.fromEntries(targets.map(t=>[t.uid,first&&awakening==='frostBurst'?Math.min(5,t.frost||0):0]));
+        const blossom=first&&awakening==='bloomBlade'?Math.min(30,(b.p.bloom||0)*3):0;
+        const hunt=awakening==='moonHunt'&&b.played>=2&&!b.awakeningUsed.hunt;
+        if(hunt)b.awakeningUsed.hunt=true;
+        if(heatSpent||blossom||hunt||Object.values(frostSpent).some(Boolean))this.triggerAwakening();
         if(!b.attacksPlayed&&all&&!e.aoe){if(this.has('petalseal')&&(b.p.bloom||0)>=5)this.triggerRelic('petalseal');if(this.has('sunemblem')&&(b.p.heat||0)>=6)this.triggerRelic('sunemblem');}
         let hits=e.hits||1;if(this.has('moonpin')&&b.played>=2&&!b.relicUsed?.moonpin){hits++;this.triggerRelic('moonpin');}
-        for(let i=0;i<hits;i++)for(const enemy of targets)if(enemy.hp>0){this.enemyDamage(enemy,this.damageFor(instance,enemy));if(enemy.id==='bossGriffin'&&enemy.turn%2===1)enemy.interrupt=(enemy.interrupt||0)+1;}
+        for(let i=0;i<hits;i++)for(const enemy of targets)if(enemy.hp>0){const bonus=(hunt?6:0)+(i===0?blossom+heatSpent*6+frostSpent[enemy.uid]*6:0);this.enemyDamage(enemy,this.damageFor(instance,enemy,bonus));if(enemy.id==='bossGriffin'&&enemy.turn%2===1)enemy.interrupt=(enemy.interrupt||0)+1;}
+        for(const enemy of targets)enemy.frost=Math.max(0,(enemy.frost||0)-frostSpent[enemy.uid]);
+        if(heatSpent)b.p.heat=Math.max(0,(b.p.heat||0)-heatSpent);
         if(!b.attacksPlayed&&this.has('wolfcharm')){b.block+=3;this.emit('block','player',3);}for(const enemy of b.enemies)if(enemy.id==='bossAurora')enemy.interrupt=(enemy.interrupt||0)+1;
-        if(e.consumeHeat)b.p.heat=0;else if(!b.attacksPlayed&&this.has('embercore')&&b.p.heat)this.triggerRelic('embercore');else if(b.p.heat)b.p.heat=Math.max(0,b.p.heat-1);b.attacksPlayed++;
+        if(e.consumeHeat)b.p.heat=0;else if(!b.attacksPlayed&&this.has('embercore')&&b.p.heat)this.triggerRelic('embercore');else if(first&&awakening==='heatRise'){if(b.p.heat)this.triggerAwakening();}else if(b.p.heat)b.p.heat=Math.max(0,b.p.heat-1);b.attacksPlayed++;
       }
       if(c.type==='skill')b.skillsPlayed=(b.skillsPlayed||0)+1;
-      const poisonBonus=e.poison&&this.has('amberflask')&&!b.relicUsed?.amberflask?2:0;if(poisonBonus&&targets.some(t=>t.hp>0))this.triggerRelic('amberflask');
+      const relicPoison=e.poison&&this.has('amberflask')&&!b.relicUsed?.amberflask?2:0;if(relicPoison&&targets.some(t=>t.hp>0))this.triggerRelic('amberflask');
+      const awakenedPoison=this.s.awakening==='venomCore'&&e.poison&&!b.awakeningUsed.poison&&targets.some(t=>t.hp>0)?6:0;
+      if(awakenedPoison){b.awakeningUsed.poison=true;this.triggerAwakening();}const poisonBonus=relicPoison+awakenedPoison;
       if(e.block){let n=e.block+(b.p.dexterity||0)+(e.bloomBlock||0)*(b.p.bloom||0)+(e.comboBlock||0)*b.played;if(b.firstBlock&&this.has('clover'))n+=3;b.firstBlock=false;b.block+=n;this.emit('block','player',n);}
       for(const enemy of targets)if(enemy.hp>0){for(const key of ['poison','frost','weak','vulnerable'])if(e[key]){const amount=e[key]+(key==='poison'?poisonBonus:0);enemy[key]+=amount;this.emit('status',enemy.uid,amount,D.statusLabels[key][0]);}if(e.poisonMultiply){enemy.poison*=e.poisonMultiply;this.emit('status',enemy.uid,enemy.poison,'毒');}}
       for(const key of ['bloom','strength','dexterity','thorns','regen','bloomTurn','drawTurn','energyTurn','blockTurn','poisonTurn','heat','heatTurn'])if(e[key]){b.p[key]=(b.p[key]||0)+e[key];this.emit('buff','player',e[key],D.statusLabels[key][0]);}
@@ -151,12 +211,14 @@
       if(e.draw)this.drawCards(e.draw);
       b.played++;if(this.has('silvermetronome')&&b.played%3===0){b.energy++;this.drawCards(1);this.triggerRelic('silvermetronome');}if(this.s.hero==='ranger')b.p.combo=b.played;
       if(e.exhaust||c.type==='power')b.exhaust.push(instance);else b.discard.push(instance);
+      this.awakeningAfterCard(c);
       this.checkEnd();return c;
     }
     endTurn() {
       this.expect('battle');const b=this.s.battle;
       for(const c of b.hand){if(c.id==='curse')this.playerDamage(2,true);if(D.getCard(c,this.s.hero).effects.ethereal)b.exhaust.push(c);else b.discard.push(c);}b.hand=[];
       if(this.s.hp<=0){this.checkEnd();return;}
+      if(this.s.awakening==='lifeBrew'&&b.enemies.some(e=>e.hp>0&&e.poison)){this.heal(2);this.grantBlock(6);this.triggerAwakening();}
       if(this.has('rootretort')&&b.enemies.some(e=>e.hp>0&&e.poison)){b.block+=4;this.triggerRelic('rootretort');this.emit('block','player',4);}
       if(b.p.regen){this.heal(b.p.regen);b.p.regen--;}
       const oldWeak=b.p.weak||0,oldVulnerable=b.p.vulnerable||0;
@@ -168,7 +230,7 @@
         if(action.damage!==undefined){for(let i=0;i<(action.hits||1);i++){this.playerDamage(action.damage,false,enemy);if(this.s.hp<=0||enemy.hp<=0)break;}this.log(`${enemy.name}：${action.damage}${action.hits>1?'×'+action.hits:''}ダメージ。`);}
         if(enemy.hp>0){if(action.block){enemy.block+=action.block;this.emit('block',enemy.uid,action.block);}if(action.strength){enemy.strength+=action.strength;this.emit('buff',enemy.uid,action.strength,'筋力');}if(action.status==='dazed'){for(let i=0;i<action.amount;i++)b.discard.push({id:'dazed',uid:this.uid(),upgraded:false});this.log(`捨て札に「まどろみ」${action.amount}枚。`);}else if(action.status)b.p[action.status]=(b.p[action.status]||0)+action.amount;}
         if(enemy.hp>0&&this.s.hp>0)this.healEnemy(enemy);
-        enemy.turn++;if(enemy.weak)enemy.weak--;if(enemy.vulnerable)enemy.vulnerable--;if(enemy.frost)enemy.frost--;
+        enemy.turn++;if(enemy.weak)enemy.weak--;if(enemy.vulnerable)enemy.vulnerable--;if(enemy.frost&&this.s.awakening!=='frostKeep')enemy.frost--;
         if(this.s.hp<=0)break;
       }
       if(oldWeak)b.p.weak=Math.max(0,(b.p.weak||0)-1);if(oldVulnerable)b.p.vulnerable=Math.max(0,(b.p.vulnerable||0)-1);
@@ -191,7 +253,7 @@
     claimPotion() {this.expect('reward');const r=this.s.reward;if(!r.potion||r.potionClaimed)return;if(this.s.potions.length>=3)throw new Error('ポーションは3個まで持てます。不要なものを捨ててください。');this.s.potions.push(r.potion);r.potionClaimed=true;}
     finishReward() {this.expect('reward');this.claimRelic();if(this.s.reward.potion&&!this.s.reward.potionClaimed&&this.s.potions.length<3)this.claimPotion();if(this.s.reward.boss){this.s.screen='bossReward';this.s.room={relics:this.rollRelics(3,true)};}else this.finishRoom();}
     chooseBossRelic(id) {this.expect('bossReward');if(id&&!this.s.room.relics.includes(id))throw new Error('レリックを選んでください。');if(id)this.addRelic(id);this.heal(Math.round(this.s.maxHP*.4));this.s.act++;this.s.row=-1;this.s.lane=1;this.s.map=this.makeMap();this.finishRoom();}
-    finishRoom() {this.s.screen='map';this.s.battle=null;this.s.reward=null;this.s.room=null;}
+    finishRoom() {this.s.screen=this.s.act>=2&&!this.s.awakening?'awakening':'map';this.s.battle=null;this.s.reward=null;this.s.room=null;}
     rest() {this.expect('rest');const heal=this.heal(Math.round(this.s.maxHP*(.3+(this.has('teacup')?.15:0))));this.finishRoom();return heal;}
     upgradeCard(uid,branch){if(!['rest','event'].includes(this.s.screen))throw new Error('ここでは強化できません。');const c=this.s.deck.find(c=>c.uid===Number(uid));if(!c||D.upgradeLevel(c)>=2||['curse','status'].includes(D.cards[c.id].type))throw new Error('このカードは強化できません。');if(c.upgraded){if(!['power','technique'].includes(branch))throw new Error('進化の分岐を選んでください。');c.branch=branch;}else{if(branch)throw new Error('まず＋に強化してください。');c.upgraded=true;}if(this.s.screen==='rest')this.finishRoom();return c;}
     collectTreasure() {this.expect('treasure');this.addRelic(this.s.room.relic);this.s.gold+=this.s.room.gold;this.finishRoom();}

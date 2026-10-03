@@ -3,13 +3,21 @@
   'use strict';
   const D=window.BloomData;
   const palettes={knight:['#ff9fc9','#ffe6ef','#ed669e'],witch:['#8fcfff','#f0faff','#ab9cff'],alchemist:['#9ff1ad','#fff4a1','#cfa2ff'],dragoon:['#ff9748','#fff3a0','#ff514e'],ranger:['#bba5ff','#e7fbff','#79deee']};
-  const atlasOriginal='./assets/ultimates-original.png',atlasExtra='./assets/ultimates-extra.png';
+  const imageURLs=new Map();
+  function imageURL(src){if(!src.startsWith('data:image/png;base64,'))return src;if(!imageURLs.has(src))imageURLs.set(src,URL.createObjectURL(new Blob([Uint8Array.from(atob(src.slice(src.indexOf(',')+1)),c=>c.charCodeAt(0))],{type:'image/png'})));return imageURLs.get(src);}
+  const atlasOriginal=imageURL('./assets/ultimates-original.png'),atlasExtra=imageURL('./assets/ultimates-extra.png');
   for(const src of [atlasOriginal,atlasExtra]){const art=new Image();art.src=src;}
   const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function portrait(hero,index,cls=''){
     const original=['knight','witch','alchemist'].includes(hero),row=(original?['knight','witch','alchemist']:['dragoon','ranger']).indexOf(hero);
     const size=512,w=1536,h=original?1536:1024;
     return `<svg class="ultimate-portrait ${cls}" viewBox="0 0 512 512" aria-hidden="true"><svg width="512" height="512" viewBox="${index*size} ${row*size} 512 512" overflow="hidden"><image href="${original?atlasOriginal:atlasExtra}" width="${w}" height="${h}" preserveAspectRatio="none"/></svg></svg>`;
+  }
+  function familiar(id){
+    const c=D.companions[id];if(!c)return '';const art=D.familiarArt[c.hero];let src=art.src;
+    src=imageURL(src);
+    const [x,y,r,b]=art.regions[c.index],w=r-x,h=b-y;
+    return `<svg class="sprite familiar-art" viewBox="0 0 ${w} ${h}" aria-hidden="true"><svg width="${w}" height="${h}" viewBox="${x} ${y} ${w} ${h}" overflow="hidden"><image href="${src}" width="1536" height="1024"/></svg></svg>`;
   }
   let active=null;
   class Playback {
@@ -129,7 +137,33 @@
     }
     async evolutionPrelude(card,targets){if(!this.motion||this.cancelled)return;const from=this.point('player'),banner=document.createElement('div');banner.className='evolution-banner branch-'+card.branch;banner.innerHTML=`<span>✦ ${card.branch==='power'?'POWER':'TECHNIQUE'} EVOLUTION</span><b>${esc(card.name)} <i>— ${card.branchName}</i></b>`;this.root.appendChild(banner);for(let i=0;i<3;i++)this.ring(from,this.color[i],80+i*42,800,i*100);this.burst(from,36,this.color[1],card.branch==='power'?'spark':'crystal',1.2);this.sound('chime');await this.wait(card.ultimate?400:230);}
     evolvedImpact(card,targets){if(!API.targetsEnemies(card)){const p=this.point('player');for(let i=0;i<4;i++)this.ring(p,card.effects.block?'#a8dcff':this.color[i%3],75+i*30,800,i*85);this.burst(p,35,this.color[1],'mote',.6);return;}const points=targets.length?targets.map(id=>this.point(id)):[this.point('player')],from=this.point('player');for(const p of points){if(card.branch==='power'){this.beam(from,p,this.color[1],card.ultimate?42:22,700);for(let i=0;i<3;i++)this.ring(p,this.color[i],110+i*44,800,i*90);this.burst(p,card.ultimate?90:45,this.color[0],this.options.hero==='knight'?'petal':'spark',1.65);}else{for(let i=0;i<5;i++){this.slash(p,-1.2+i*.55,this.color[i%3],.75+i*.13,i*85);this.ring(p,this.color[i%3],60+i*23,700,i*70);}this.burst(p,card.ultimate?70:35,this.color[1],this.options.hero==='alchemist'?'mote':'crystal',1.3);}}}
+    async journeyCutIn(event){
+      const awakening=event.type==='awakenChosen',hero=event.hero||this.options.hero,h=D.heroes[hero],a=awakening?D.awakenings[event.awakeningId]:D.companions[event.companion],ally=D.companions[event.companion],bond=event.resonance?D.bondFor(hero,event.companion):null;
+      const name=awakening?a.name:bond?bond.name:a.skill;
+      this.options.announce?.(awakening?h.name+'が「'+name+'」に覚醒！':ally.name+'の'+(bond?'共鳴支援':'支援')+'、'+name+'！');
+      if(!this.motion||this.cancelled)return;
+      this.focusBefore=document.activeElement;
+      const cut=document.createElement('div');cut.className='journey-cutin '+(awakening?'awakening-cutin':bond?'resonance-cutin familiar-cutin':'assist-cutin familiar-cutin');
+      cut.style.setProperty('--journey-color',(ally||h).color);cut.style.setProperty('--lead-color',h.color);
+      cut.innerHTML=`<div class="journey-cutin-shade"></div><div class="journey-cutin-lines"></div><div class="journey-cutin-halo"></div><div class="journey-cutin-portraits">${!awakening?`<div class="journey-lead">${portrait(hero,0)}</div>`:''}<div class="journey-ally">${awakening?portrait(hero,a.index):familiar(event.companion)}</div></div><div class="journey-cutin-copy"><p class="eyebrow">${awakening?'AWAKENING':bond?'RESONANCE ASSIST':'COMPANION ASSIST'}</p><p class="journey-cutin-names">${awakening?h.name:bond?h.name+' × '+ally.name:ally.name}</p><h2>${esc(name)}</h2><span class="journey-cutin-rule"></span><p>${awakening?esc(a.style):bond?'「'+esc(bond.lead)+'」<br>'+esc(bond.reply):'「'+esc(a.quote)+'」'}</p><small>${awakening?'この冒険に、新たな力を。':bond?'ふたつの想いが、ひとつの力に。':esc(a.en)}</small></div>`;
+      document.body.appendChild(cut);this.cutin=cut;
+      const skip=document.createElement('button');skip.className='cutin-skip';skip.textContent='演出をスキップ [Esc]';skip.addEventListener('click',()=>this.skip());document.body.appendChild(skip);this.skipButton=skip;skip.focus({preventScroll:true});this.sound('charge',awakening?2:1);
+      await this.wait(awakening||bond?1700:1200);cut.classList.add('journey-cutin-out');await this.wait(250);cut.remove();
+    }
+    supportImpact(event){
+      const c=D.companions[event.companion],from=this.point('player'),points=event.targets.map(t=>this.point(t));this.color=palettes[c.hero];this.sound('ultimate',1);
+      const shoulder=document.querySelector('.shoulder-familiar')?.getBoundingClientRect(),source=shoulder?{x:shoulder.left+shoulder.width/2,y:shoulder.top+shoulder.height/2}:from;
+      this.burst(source,24,this.color[1],'mote',.6);
+      if(c.fx==='ward'||c.fx==='heal'||c.fx==='star'){for(let i=0;i<4;i++)this.ring(from,c.fx==='heal'?'#baffcc':this.color[i%3],65+i*28,850,i*85);this.burst(from,42,this.color[0],c.hero==='knight'?'petal':'mote',.7);}
+      if(c.fx==='crystal')for(const p of points){this.projectile(source,p,this.color[0]);this.ring(p,this.color[1],100,800,220);this.burst(p,32,this.color[0],'crystal');}
+      if(c.fx==='poison')for(const p of points){this.projectile(source,p,this.color[2]);this.burst(p,32,this.color[0],'mote');}
+      if(c.fx==='beam')for(const p of points){this.beam(source,p,this.color[0],28,700);this.ring(p,this.color[1],150,900);this.burst(p,45,this.color[0],c.hero==='knight'?'petal':'spark',1.4);}
+      if(c.fx==='slash')for(const p of points)for(let i=0;i<5;i++)this.slash(p,i%2?.65:-.65,this.color[i%3],1.25,i*120);
+      if(event.resonance){this.ring(from,this.color[0],150,900);for(const p of points)this.ring(p,this.color[1],95,750,120);}
+    }
     async run(effects){
+      const journey=effects.find(e=>e.type==='companion'||e.type==='awakenChosen');
+      if(journey){await this.journeyCutIn(journey);if(this.cancelled)return;if(journey.type==='companion')this.supportImpact(journey);else{const p=this.point('player');for(let i=0;i<4;i++)this.ring(p,this.color[i%3],80+i*35,900,i*80);this.sound('chime');}await this.wait(160);}
       const opener=effects.find(e=>e.type==='card'),card=opener&&D.getCard({id:opener.cardId,upgraded:opener.upgraded,branch:opener.branch},this.options.hero);
       if(opener&&card&&!API.targetsEnemies(card))opener.targets=[];
       if(card?.branch){this.color=card.branch==='power'?[this.color[0],'#fff3bd','#ffcd65']:['#b6eaff',this.color[0],'#e0c2ff'];await this.evolutionPrelude(card,opener.targets);}
@@ -139,7 +173,8 @@
       let damageIndex=0;
       for(const e of effects){
         if(this.cancelled)break;
-        if(e.type==='card')continue;
+        if(['card','companion','awakenChosen'].includes(e.type))continue;
+        if(e.type==='awakening'){const token=document.querySelector('[data-action="awakening-info"]');this.animate(token,[{filter:'brightness(1)'},{filter:'brightness(2.5)',color:'#ffe5a3'},{filter:'brightness(1)'}],650);const tag=document.createElement('span');tag.className='relic-activation awakening-activation';tag.textContent='✧ '+e.label;tag.style.top=(22+(this.relicCount||0)*40)+'px';this.relicCount=(this.relicCount||0)+1;this.root.appendChild(tag);continue;}
         if(e.type==='relic'){const token=document.querySelector(`[data-action="relic"][data-id="${e.relicId}"]`);this.animate(token,[{boxShadow:'0 0 0 transparent'},{boxShadow:'0 0 26px #ffdf8a',background:'#5d4b26'},{boxShadow:'0 0 0 transparent'}],900);const tag=document.createElement('span');tag.className='relic-activation';tag.textContent='✦ '+e.label;tag.style.top=(22+(this.relicCount||0)*40)+'px';this.relicCount=(this.relicCount||0)+1;this.root.appendChild(tag);continue;}
         if(e.type==='enemyAction'){
           const from=this.point(e.target),to=this.point('player');
@@ -157,7 +192,7 @@
       await this.wait(card?.ultimate?850:480);
     }
   }
-  const API={portrait,
+  const API={portrait,familiar,
     targetsEnemies(card){const e=card.effects;return !!(e.damage||e.poison||e.frost||e.weak||e.vulnerable||e.poisonMultiply);},
     async play(effects,options){if(active)return;const playback=new Playback(options);active=playback;try{await playback.run(effects);}finally{playback.dispose();if(active===playback)active=null;}},
     async preview(id,options){const c=D.getCard({id,upgraded:!!options.branch,branch:options.branch},options.hero);if(!c)return;const hero=c.hero==='all'?options.hero||'knight':c.hero,targets=c.effects.damage||c.effects.poison||c.effects.frost?['preview-enemy']:[];await API.play([{type:'card',cardId:id,hero,ultimate:c.ultimate,branch:c.branch,upgraded:c.upgraded,targets}],{...options,hero,preview:true});},
